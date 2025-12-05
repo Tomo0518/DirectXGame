@@ -2,6 +2,14 @@
 #include <cstdint>
 #include <string>
 #include <format>
+#include "ConvertString.h"
+
+#include <d3d12.h>
+#include <dxgi1_6.h>
+#include<cassert>
+
+#pragma comment(lib, "d3d12.lib")
+#pragma comment(lib, "dxgi.lib")
 
 // ウィンドウプロシージャ
 LRESULT CALLBACK WindowProc(HWND hwnd, UINT msg,
@@ -19,6 +27,8 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT msg,
 void Log(const std::string& message) {
 	OutputDebugStringA(message.c_str());
 }
+
+
 
 // Windowsアプリでのエントリーポイント(main関数)
 int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
@@ -59,6 +69,9 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	);
 
 	MSG msg{};
+
+	// DXGIファクトリーの生成
+	IDXGIFactory7* dxgiFactory = nullptr;
 
 	// ウィンドウのxボタンが押されるまでループ
 	while (msg.message != WM_QUIT) {

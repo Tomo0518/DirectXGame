@@ -13,10 +13,93 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="ソース ファイル\Platform">
+      <UniqueIdentifier>{a1538d75-728b-4ff3-b275-1f7cc6192309}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ソース ファイル\TomoEngine">
+      <UniqueIdentifier>{9438747e-76e2-4b10-b133-63f361d171d6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ソース ファイル\TomoEngine\Core">
+      <UniqueIdentifier>{ba307411-7b11-4ff5-a23d-0f60f4af6d0e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ソース ファイル\TomoEngine\Core\Base">
+      <UniqueIdentifier>{e4c1c672-77ff-4e5c-83f0-7cc64b662976}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ソース ファイル\TomoEngine\Core\Utility">
+      <UniqueIdentifier>{06a66cd2-2449-4beb-82a9-39dc9ceac9d1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ソース ファイル\TomoEngine\Core\Utility\Logger">
+      <UniqueIdentifier>{c4e1e17f-b50a-4436-96fd-8d0c0187ceb2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ソース ファイル\TomoEngine\Core\RHI">
+      <UniqueIdentifier>{eafeaeec-6e35-4b1c-9194-32341abd92ac}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ソース ファイル\TomoEngine\Assets">
+      <UniqueIdentifier>{61d35ff0-6b19-4a28-a3d9-40c697507fb9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ソース ファイル\TomoEngine\Game">
+      <UniqueIdentifier>{81042953-1896-4e44-be70-9419a52ddd0f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ソース ファイル\TomoEngine\Game\Scene">
+      <UniqueIdentifier>{99aa09c3-fc3d-44a5-9edc-be9e89689c78}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ソース ファイル\TomoEngine\Game\Scene\IScene">
+      <UniqueIdentifier>{99bf4dbd-e46e-4774-9c05-80d6e6ec1db1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ソース ファイル\TomoEngine\Game\Scene\SceneManager">
+      <UniqueIdentifier>{20f73fc0-5eec-4cdd-bb20-86b9550ecbe5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ソース ファイル\TomoEngine\Game\Scene\Scene">
+      <UniqueIdentifier>{49371879-32a4-4d13-92c7-09d604e42aff}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ソース ファイル\TomoEngine\Modules">
+      <UniqueIdentifier>{1be06861-ff90-4d88-ae63-f507fa5364c8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ソース ファイル\TomoEngine\Modules\ECS">
+      <UniqueIdentifier>{fc6dbac0-f89f-4c50-b8ab-733a2d5950a6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ソース ファイル\TomoEngine\Core\Utility\ConvertString">
+      <UniqueIdentifier>{e26cf8e9-89e9-4c7f-a02e-5c87f66330e4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ソース ファイル\TomoEngine\Game\Object">
+      <UniqueIdentifier>{0fc30f1e-a5a8-45d4-9aad-bc44d135078b}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
+    <ClCompile Include="Logger.cpp">
+      <Filter>ソース ファイル\TomoEngine\Core\Utility\Logger</Filter>
+    </ClCompile>
+    <ClCompile Include="TomoEngine.cpp">
+      <Filter>ソース ファイル\TomoEngine</Filter>
+    </ClCompile>
+    <ClCompile Include="Game.cpp">
+      <Filter>ソース ファイル\TomoEngine\Game</Filter>
+    </ClCompile>
+    <ClCompile Include="ConvertString.cpp">
+      <Filter>ソース ファイル\TomoEngine\Core\Utility\ConvertString</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Logger.h">
+      <Filter>ソース ファイル\TomoEngine\Core\Utility\Logger</Filter>
+    </ClInclude>
+    <ClInclude Include="TomoEngine.h">
+      <Filter>ソース ファイル\TomoEngine</Filter>
+    </ClInclude>
+    <ClInclude Include="Core.h">
+      <Filter>ソース ファイル\TomoEngine\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Utility.h">
+      <Filter>ソース ファイル\TomoEngine\Core\Utility</Filter>
+    </ClInclude>
+    <ClInclude Include="Game.h">
+      <Filter>ソース ファイル\TomoEngine\Game</Filter>
+    </ClInclude>
+    <ClInclude Include="ConvertString.h">
+      <Filter>ソース ファイル\TomoEngine\Core\Utility\ConvertString</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
