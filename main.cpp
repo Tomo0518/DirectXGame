@@ -149,44 +149,45 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	assert(device != nullptr);
 	Log("Complete create D3D12Device!!!\n");
 
-	//#ifdef _DEBUG
-	//	ID3D12InfoQueue* infoQueue = nullptr;
-	//	if (SUCCEEDED(device->QueryInterface(IID_PPV_ARGS(&infoQueue)))) {
-	//		// やばいエラー時止まる
-	//		infoQueue->SetBreakOnSeverity(D3D12_MESSAGE_SEVERITY_CORRUPTION, true);
-	//
-	//		// エラー時に止まる
-	//		infoQueue->SetBreakOnSeverity(D3D12_MESSAGE_SEVERITY_ERROR, true);
-	//
-	//		// 警告時に止まる
-	//		infoQueue->SetBreakOnSeverity(D3D12_MESSAGE_SEVERITY_WARNING, true);
-	//
-	//		D3D12_MESSAGE_ID denyIds[] = {
-	//			D3D12_MESSAGE_ID_RESOURCE_BARRIER_MISMATCHING_COMMAND_LIST_TYPE
-	//		};
-	//
-	//		// 抑制するレベル
-	//		D3D12_MESSAGE_SEVERITY severities[] = {
-	//			D3D12_MESSAGE_SEVERITY_INFO
-	//		};
-	//
-	//		D3D12_INFO_QUEUE_FILTER filter = {};
-	//		filter.DenyList.NumIDs = _countof(denyIds);
-	//		filter.DenyList.pIDList = denyIds;
-	//		filter.DenyList.NumSeverities = _countof(severities);
-	//		filter.DenyList.pSeverityList = severities;
-	//
-	//		// 指定したメッセージの表示を抑制する
-	//		infoQueue->PushStorageFilter(&filter);
-	//
-	//		// 解放
-	//		infoQueue->Release();
-	//	}
-	//#endif
+#ifdef _DEBUG
+	ID3D12InfoQueue* infoQueue = nullptr;
+	if (SUCCEEDED(device->QueryInterface(IID_PPV_ARGS(&infoQueue)))) {
+		// やばいエラー時止まる
+		infoQueue->SetBreakOnSeverity(D3D12_MESSAGE_SEVERITY_CORRUPTION, true);
 
-		// ===========================================
-		// コマンドキューを生成する
-		// ===========================================
+		// エラー時に止まる
+		infoQueue->SetBreakOnSeverity(D3D12_MESSAGE_SEVERITY_ERROR, true);
+
+		// 警告時に止まる
+		infoQueue->SetBreakOnSeverity(D3D12_MESSAGE_SEVERITY_WARNING, true);
+
+		// 抑制するメッセージID
+		D3D12_MESSAGE_ID denyIds[] = {
+			D3D12_MESSAGE_ID_RESOURCE_BARRIER_MISMATCHING_COMMAND_LIST_TYPE
+		};
+
+		// 抑制するレベル
+		D3D12_MESSAGE_SEVERITY severities[] = {
+			D3D12_MESSAGE_SEVERITY_INFO
+		};
+
+		D3D12_INFO_QUEUE_FILTER filter = {};
+		filter.DenyList.NumIDs = _countof(denyIds);
+		filter.DenyList.pIDList = denyIds;
+		filter.DenyList.NumSeverities = _countof(severities);
+		filter.DenyList.pSeverityList = severities;
+
+		// 指定したメッセージの表示を抑制する
+		infoQueue->PushStorageFilter(&filter);
+
+		// 解放
+		infoQueue->Release();
+	}
+#endif
+
+	// ===========================================
+	// コマンドキューを生成する
+	// ===========================================
 	ID3D12CommandQueue* commandQueue = nullptr;
 	D3D12_COMMAND_QUEUE_DESC commandQueueDesc = {};
 	/*commandQueueDesc.Type = D3D12_COMMAND_LIST_TYPE_DIRECT;
@@ -292,6 +293,23 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	// これから書き込むバックバッファのインデックスを取得
 	UINT backBufferIndex = swapChain->GetCurrentBackBufferIndex();
 
+	// TransitionBarrierの設定
+	D3D12_RESOURCE_BARRIER barrier{};
+
+	// 今回のバリアはTransition
+	barrier.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
+	// Noneにしておく
+	barrier.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
+	// バリアを張るリソースを指定
+	barrier.Transition.pResource = swapChainResources[backBufferIndex];
+	// 遷移前(現在)のResourcesState
+	barrier.Transition.StateBefore = D3D12_RESOURCE_STATE_PRESENT;
+	// 遷移後のResourcesState
+	barrier.Transition.StateAfter = D3D12_RESOURCE_STATE_RENDER_TARGET;
+	// TransitionBarrierを張る
+	commandList->ResourceBarrier(1, &barrier);
+
+
 	// 描画先のRTVを指定
 	commandList->OMSetRenderTargets(1, &rtvHandles[backBufferIndex], false, nullptr);
 
@@ -299,9 +317,28 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	float clearColor[] = { 0.1f,0.25f,0.5f,1.0f }; // 青っぽい色 RGBA
 	commandList->ClearRenderTargetView(rtvHandles[backBufferIndex], clearColor, 0, nullptr);
 
+	// 画面に描く処理は全て終わり、画面に映すので状態を遷移
+	// 今回はRenderTargetからPresentにする
+	barrier.Transition.StateBefore = D3D12_RESOURCE_STATE_RENDER_TARGET;
+	barrier.Transition.StateAfter = D3D12_RESOURCE_STATE_PRESENT;
+	// TransitionBarrierを張る
+	commandList->ResourceBarrier(1, &barrier);
+
 	// コマンドリストの記録を終了
 	hr = commandList->Close();
 	assert(SUCCEEDED(hr));
+
+	// ==================================
+	// FenceとEventの生成
+	// ==================================
+	ID3D12Fence* fence = nullptr;
+	uint64_t fenceValue = 0;
+	hr = device->CreateFence(fenceValue, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&fence));
+	assert(SUCCEEDED(hr));
+
+	// FenceのSingnalを待つためのEventを生成
+	HANDLE fenceEvent = CreateEvent(nullptr, FALSE, FALSE, nullptr);
+	assert(fenceEvent != nullptr);
 
 	// ==================================
 	// GUIにキックする
@@ -309,6 +346,17 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	// GUIにコマンドリストの実行を行わせる
 	ID3D12CommandList* commandlLists[] = { commandList };
 	commandQueue->ExecuteCommandLists(1, commandlLists);
+
+	// GPUにコマンドの実行完了を通知するようにSignalを送る
+	fenceValue++; // 値を更新
+	hr = commandQueue->Signal(fence, fenceValue);
+
+	if (fence->GetCompletedValue() < fenceValue) {
+		fence->SetEventOnCompletion(fenceValue, fenceEvent);
+
+		// イベントが来るまで待機
+		WaitForSingleObject(fenceEvent, INFINITE);
+	}
 
 	// GPUとOSに画面の交換を行うように通知する
 	swapChain->Present(1, 0);
