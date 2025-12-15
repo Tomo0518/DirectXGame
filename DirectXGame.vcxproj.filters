@@ -64,6 +64,9 @@
     <Filter Include="ソース ファイル\TomoEngine\Game\Object">
       <UniqueIdentifier>{0fc30f1e-a5a8-45d4-9aad-bc44d135078b}</UniqueIdentifier>
     </Filter>
+    <Filter Include="ソース ファイル\TomoEngine\Core\Modules">
+      <UniqueIdentifier>{5801cd85-66c5-463d-8b0f-ddd258fccc11}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -80,6 +83,9 @@
     </ClCompile>
     <ClCompile Include="ConvertString.cpp">
       <Filter>ソース ファイル\TomoEngine\Core\Utility\ConvertString</Filter>
+    </ClCompile>
+    <ClCompile Include="RendererDX12.cpp">
+      <Filter>ソース ファイル\TomoEngine\Core\Modules</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -100,6 +106,12 @@
     </ClInclude>
     <ClInclude Include="ConvertString.h">
       <Filter>ソース ファイル\TomoEngine\Core\Utility\ConvertString</Filter>
+    </ClInclude>
+    <ClInclude Include="Game\Object\Player\Player.h">
+      <Filter>ソース ファイル\TomoEngine\Game\Object</Filter>
+    </ClInclude>
+    <ClInclude Include="RendererDX12.h">
+      <Filter>ソース ファイル\TomoEngine\Core\Modules</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
