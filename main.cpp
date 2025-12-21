@@ -399,47 +399,6 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	} D3D12_CPU_DESCRIPTOR_HANDLE;
 
 	// ==================================
-	// 画面をクリアする処理が含まれたコマンドリストの記録
-	// ==================================
-	// これから書き込むバックバッファのインデックスを取得
-	UINT backBufferIndex = swapChain->GetCurrentBackBufferIndex();
-
-	// TransitionBarrierの設定
-	D3D12_RESOURCE_BARRIER barrier{};
-
-	// 今回のバリアはTransition
-	barrier.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
-	// Noneにしておく
-	barrier.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
-	// バリアを張るリソースを指定
-	barrier.Transition.pResource = swapChainResources[backBufferIndex];
-	// 遷移前(現在)のResourcesState
-	barrier.Transition.StateBefore = D3D12_RESOURCE_STATE_PRESENT;
-	// 遷移後のResourcesState
-	barrier.Transition.StateAfter = D3D12_RESOURCE_STATE_RENDER_TARGET;
-	// TransitionBarrierを張る
-	commandList->ResourceBarrier(1, &barrier);
-
-
-	// 描画先のRTVを指定
-	commandList->OMSetRenderTargets(1, &rtvHandles[backBufferIndex], false, nullptr);
-
-	// 指定した色で画面をクリアする
-	float clearColor[] = { 0.1f,0.25f,0.5f,1.0f }; // 青っぽい色 RGBA
-	commandList->ClearRenderTargetView(rtvHandles[backBufferIndex], clearColor, 0, nullptr);
-
-	// 画面に描く処理は全て終わり、画面に映すので状態を遷移
-	// 今回はRenderTargetからPresentにする
-	barrier.Transition.StateBefore = D3D12_RESOURCE_STATE_RENDER_TARGET;
-	barrier.Transition.StateAfter = D3D12_RESOURCE_STATE_PRESENT;
-	// TransitionBarrierを張る
-	commandList->ResourceBarrier(1, &barrier);
-
-	// コマンドリストの記録を終了
-	hr = commandList->Close();
-	assert(SUCCEEDED(hr));
-
-	// ==================================
 	// FenceとEventの生成
 	// ==================================
 	ID3D12Fence* fence = nullptr;
@@ -637,6 +596,37 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	scissorRect.top = 0;
 	scissorRect.bottom = kClientHeight;
 
+
+	// ==================================
+// 画面をクリアする処理が含まれたコマンドリストの記録
+// ==================================
+// これから書き込むバックバッファのインデックスを取得
+	UINT backBufferIndex = swapChain->GetCurrentBackBufferIndex();
+
+	// TransitionBarrierの設定
+	D3D12_RESOURCE_BARRIER barrier{};
+
+	// 今回のバリアはTransition
+	barrier.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
+	// Noneにしておく
+	barrier.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
+	// バリアを張るリソースを指定
+	barrier.Transition.pResource = swapChainResources[backBufferIndex];
+	// 遷移前(現在)のResourcesState
+	barrier.Transition.StateBefore = D3D12_RESOURCE_STATE_PRESENT;
+	// 遷移後のResourcesState
+	barrier.Transition.StateAfter = D3D12_RESOURCE_STATE_RENDER_TARGET;
+	// TransitionBarrierを張る
+	commandList->ResourceBarrier(1, &barrier);
+
+
+	// 描画先のRTVを指定
+	commandList->OMSetRenderTargets(1, &rtvHandles[backBufferIndex], false, nullptr);
+
+	// 指定した色で画面をクリアする
+	float clearColor[] = { 0.1f,0.25f,0.5f,1.0f }; // 青っぽい色 RGBA
+	commandList->ClearRenderTargetView(rtvHandles[backBufferIndex], clearColor, 0, nullptr);
+
 	// =======================================================
 	// コマンドを積む(描画に必要な情報を使って)
 	// =======================================================
@@ -647,9 +637,20 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	commandList->SetPipelineState(graphicsPipelineState);		// PSOをセット
 	commandList->IASetVertexBuffers(0, 1, &vertexBufferView);	// VBVをセット
 	// 形状を設定。PSOに設定しているものとはまた別で同じものを設定する必要がある
-	commandList->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+	commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 	// 描画コマンド (DrawCall/ドローコール)3頂点で1つの図形を描画
 	commandList->DrawInstanced(3, 1, 0, 0); // 頂点3つで1つの図形を描画
+
+	// 画面に描く処理は全て終わり、画面に映すので状態を遷移
+	// 今回はRenderTargetからPresentにする
+	barrier.Transition.StateBefore = D3D12_RESOURCE_STATE_RENDER_TARGET;
+	barrier.Transition.StateAfter = D3D12_RESOURCE_STATE_PRESENT;
+	// TransitionBarrierを張る
+	commandList->ResourceBarrier(1, &barrier);
+
+	// コマンドリストの記録を終了
+	hr = commandList->Close();
+	assert(SUCCEEDED(hr));
 
 	// ==================================
 	// GUIにキックする
