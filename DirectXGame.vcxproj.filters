@@ -67,6 +67,9 @@
     <Filter Include="ソース ファイル\TomoEngine\Core\Modules">
       <UniqueIdentifier>{5801cd85-66c5-463d-8b0f-ddd258fccc11}</UniqueIdentifier>
     </Filter>
+    <Filter Include="HLSL">
+      <UniqueIdentifier>{08e648fc-4d31-425c-a433-8147f8239b5a}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -113,5 +116,13 @@
     <ClInclude Include="RendererDX12.h">
       <Filter>ソース ファイル\TomoEngine\Core\Modules</Filter>
     </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <FxCompile Include="Object3d.VS.hlsl">
+      <Filter>HLSL</Filter>
+    </FxCompile>
+    <FxCompile Include="Object3d.PS.hlsl">
+      <Filter>HLSL</Filter>
+    </FxCompile>
   </ItemGroup>
 </Project>
