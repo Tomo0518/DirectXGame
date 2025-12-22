@@ -70,6 +70,27 @@
     <Filter Include="HLSL">
       <UniqueIdentifier>{08e648fc-4d31-425c-a433-8147f8239b5a}</UniqueIdentifier>
     </Filter>
+    <Filter Include="ソース ファイル\TomoEngine\Math">
+      <UniqueIdentifier>{9fdd2e5d-1f6b-4602-8bfe-c968c7153148}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ソース ファイル\TomoEngine\Math\3D">
+      <UniqueIdentifier>{41dbc3aa-ebef-471d-acec-5872c5bbef2a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ソース ファイル\TomoEngine\Math\2D">
+      <UniqueIdentifier>{04c0e317-e419-46f9-8a68-8ff19ba52d26}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ソース ファイル\TomoEngine\Math\3D\Vector4">
+      <UniqueIdentifier>{af1c39b0-bd2a-4398-98dd-410cf6253210}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ソース ファイル\TomoEngine\Math\3D\Vector3">
+      <UniqueIdentifier>{171cbc73-379c-40e9-b605-23c1dd6e779f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ソース ファイル\TomoEngine\Math\3D\Matrix4x4">
+      <UniqueIdentifier>{f1dba974-593c-45bf-892f-1d4065a39f76}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ソース ファイル\TomoEngine\Math\3D\Affine3D">
+      <UniqueIdentifier>{1d6157d0-586a-4bf7-b9fa-04d08f00369d}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -89,6 +110,18 @@
     </ClCompile>
     <ClCompile Include="RendererDX12.cpp">
       <Filter>ソース ファイル\TomoEngine\Core\Modules</Filter>
+    </ClCompile>
+    <ClCompile Include="Vector3.cpp">
+      <Filter>ソース ファイル\TomoEngine\Math\3D\Vector3</Filter>
+    </ClCompile>
+    <ClCompile Include="Vector4.cpp">
+      <Filter>ソース ファイル\TomoEngine\Math\3D\Vector4</Filter>
+    </ClCompile>
+    <ClCompile Include="Matrix4x4.cpp">
+      <Filter>ソース ファイル\TomoEngine\Math\3D\Matrix4x4</Filter>
+    </ClCompile>
+    <ClCompile Include="Affine3D.cpp">
+      <Filter>ソース ファイル\TomoEngine\Math\3D\Affine3D</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -115,6 +148,24 @@
     </ClInclude>
     <ClInclude Include="RendererDX12.h">
       <Filter>ソース ファイル\TomoEngine\Core\Modules</Filter>
+    </ClInclude>
+    <ClInclude Include="Math.h">
+      <Filter>ソース ファイル\TomoEngine\Math</Filter>
+    </ClInclude>
+    <ClInclude Include="Vector3.h">
+      <Filter>ソース ファイル\TomoEngine\Math\3D\Vector3</Filter>
+    </ClInclude>
+    <ClInclude Include="Transform.h">
+      <Filter>ソース ファイル\TomoEngine\Math\3D</Filter>
+    </ClInclude>
+    <ClInclude Include="Vector4.h">
+      <Filter>ソース ファイル\TomoEngine\Math\3D\Vector4</Filter>
+    </ClInclude>
+    <ClInclude Include="Matrix4x4.h">
+      <Filter>ソース ファイル\TomoEngine\Math\3D\Matrix4x4</Filter>
+    </ClInclude>
+    <ClInclude Include="Affine3D.h">
+      <Filter>ソース ファイル\TomoEngine\Math\3D\Affine3D</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

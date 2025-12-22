@@ -19,11 +19,44 @@
 #include <dxcapi.h>
 #pragma comment(lib, "dxcompiler.lib")
 
+#include "Math.h"
 
-struct Vector4 {
-	float x, y, z, w;
-};
+ID3D12Resource* CreateBufferResource(ID3D12Device* device, size_t sizeInBytes) {
+	assert(device != nullptr);
 
+	// アップロードヒープの設定
+	D3D12_HEAP_PROPERTIES heapProps = {};
+	heapProps.Type = D3D12_HEAP_TYPE_UPLOAD; // CPUからGPUへ書き込み
+
+	// バッファリソースの設定（引数サイズを使用）
+	D3D12_RESOURCE_DESC resDesc = {};
+	resDesc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
+	resDesc.Alignment = 0;
+	resDesc.Width = static_cast<UINT64>(sizeInBytes);
+	resDesc.Height = 1;
+	resDesc.DepthOrArraySize = 1;
+	resDesc.MipLevels = 1;
+	resDesc.Format = DXGI_FORMAT_UNKNOWN;
+	resDesc.SampleDesc.Count = 1;
+	resDesc.SampleDesc.Quality = 0;
+	resDesc.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
+	resDesc.Flags = D3D12_RESOURCE_FLAG_NONE;
+
+	ID3D12Resource* resource = nullptr;
+	HRESULT hr = device->CreateCommittedResource(
+		&heapProps,
+		D3D12_HEAP_FLAG_NONE,
+		&resDesc,
+		D3D12_RESOURCE_STATE_GENERIC_READ, // Uploadヒープは通常GenericRead開始
+		nullptr,
+		IID_PPV_ARGS(&resource)
+	);
+	assert(SUCCEEDED(hr));
+	if (FAILED(hr)) {
+		return nullptr;
+	}
+	return resource;
+}
 
 // ウィンドウプロシージャ
 LRESULT CALLBACK WindowProc(HWND hwnd, UINT msg,
@@ -432,6 +465,30 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	D3D12_ROOT_SIGNATURE_DESC descriptionRootSignature = {};
 	descriptionRootSignature.Flags = D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT;
 
+	// =================================
+	// RootParameter作成。複数設定できるので配列。今回は結果一つだけなので長さ1
+	// =================================
+	D3D12_ROOT_PARAMETER rootParameters[2] = {};
+	rootParameters[0].ParameterType = D3D12_ROOT_PARAMETER_TYPE_CBV; // 定数バッファビュー　// b0のbと一致する
+	rootParameters[0].ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL; // ピクセルシェーダーで使う
+	rootParameters[0].Descriptor.ShaderRegister = 0; // レジスタ番号0 // b0の0と一致する　もしb11と紐づけたいなら11にする
+
+	rootParameters[1].ParameterType = D3D12_ROOT_PARAMETER_TYPE_CBV; // 定数バッファビュー　// b1のbと一致する
+	rootParameters[1].ShaderVisibility = D3D12_SHADER_VISIBILITY_VERTEX; // 頂点シェーダーで使う
+	rootParameters[1].Descriptor.ShaderRegister = 0; // レジスタ番号
+
+	descriptionRootSignature.pParameters = rootParameters; // ルートパラメータ配列へのポインタ
+	descriptionRootSignature.NumParameters = _countof(rootParameters); // ルートパラメータの配列の長さ
+
+	//WVP用のリソースを作る
+	ID3D12Resource* wvpResource = CreateBufferResource(device, sizeof(Matrix4x4));
+	// データを書き込む
+	Matrix4x4* wvpData = nullptr;
+	// 書き込むためのアドレスを取得
+	wvpResource->Map(0, nullptr, reinterpret_cast<void**>(&wvpData));
+	// 単位行列を書き込む
+	*wvpData = Matrix4x4::MakeIdentity4x4();
+
 	// シリアライズしてバイナリにする
 	ID3DBlob* signatureBlob = nullptr;
 	ID3DBlob* errorBlob = nullptr;
@@ -550,6 +607,15 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	assert(SUCCEEDED(hr));
 
 	// ==================================
+	// Material用のResourceの生成
+	// ==================================
+	ID3D12Resource* materialResource = CreateBufferResource(device, sizeof(Vector4)); // RGBA分のサイズ
+	Vector4* materialData = nullptr;
+	materialResource->Map(0, nullptr, reinterpret_cast<void**>(&materialData));
+	// 赤色に設定
+	*materialData = { 1.0f,0.0f,0.0f,1.0f };
+
+	// ==================================
 	// VertexBufferViewを作成する
 	// ==================================
 	// 頂点バッファビューを作成する
@@ -638,6 +704,20 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	commandList->IASetVertexBuffers(0, 1, &vertexBufferView);	// VBVをセット
 	// 形状を設定。PSOに設定しているものとはまた別で同じものを設定する必要がある
 	commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
+
+	// ==================================
+	// CBVを設定する
+	// ==================================
+	// マテリアルCBufferの場所を設定
+	commandList->SetGraphicsRootConstantBufferView(
+		0, // ルートパラメータのインデックス
+		materialResource->GetGPUVirtualAddress() // CBV用リソースのアドレス
+	);
+
+	// WVP用のCBufferの場所を設定
+	commandList->SetGraphicsRootConstantBufferView(1, wvpResource->GetGPUVirtualAddress());
+
 	// 描画コマンド (DrawCall/ドローコール)3頂点で1つの図形を描画
 	commandList->DrawInstanced(3, 1, 0, 0); // 頂点3つで1つの図形を描画
 
@@ -679,6 +759,11 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	hr = commandList->Reset(commandAllocator, nullptr);
 	assert(SUCCEEDED(hr));
 
+	// ==================================
+	// オブジェクト初期化、宣言
+	// ==================================
+	Transform transform{ {1.0f,1.0f,1.0f},{0.0f,0.0f,0.0f},{0.0f,0.0f,0.0f} };
+
 	// ウィンドウのxボタンが押されるまでループ
 	while (msg.message != WM_QUIT) {
 		// Windowsメッセージが来ていたら最優先で処理させる
@@ -692,6 +777,13 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 			//==================================
 			ShowWindow(hwnd, SW_SHOW);
 
+			transform.rotate.y += 0.03f;
+			Matrix4x4 worldMatrix = MakeAffineMatrix(
+				transform.scale,
+				transform.rotate,
+				transform.translate
+			);
+			*wvpData = worldMatrix;
 		}
 	}
 
@@ -718,6 +810,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	// =================================
 	// 頂点シェーダー、ピクセルシェーダーの解放
 	// =================================
+	materialResource->Release();
 	vertexResource->Release();
 	graphicsPipelineState->Release();
 	signatureBlob->Release();
