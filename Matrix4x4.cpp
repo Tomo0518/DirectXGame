@@ -1,4 +1,5 @@
 #include "Matrix4x4.h"
+#include <cmath> // tanf
 
 Matrix4x4 Matrix4x4::Add(const Matrix4x4& m1, const Matrix4x4& m2) {
 	Matrix4x4 result = { 0 };
@@ -177,6 +178,33 @@ Matrix4x4 Matrix4x4::MakeIdentity4x4() {
 	for (int i = 0; i < 4; ++i) {
 		result.m[i][i] = 1.0f;
 	}
+	return result;
+}
+
+Matrix4x4 Matrix4x4::MakeParspectiveFovMatrix(float fovY, float aspect, float nearZ, float farZ) {
+	Matrix4x4 result = { 0 };
+
+	// cot(fovY/2) = 1 / tan(fovY/2)
+	const float cotHalfFovY = 1.0f / std::tanf(fovY * 0.5f);
+
+	// 1/a * cot(fovY/2)
+	result.m[0][0] = (1.0f / aspect) * cotHalfFovY; // 行0,列0
+
+	// cot(fovY/2)
+	result.m[1][1] = cotHalfFovY;                   // 行1,列1
+
+	// z 行
+	//   zf / (zf - zn)
+	result.m[2][2] = farZ / (farZ - nearZ);         // 行2,列2
+	//   1
+	result.m[2][3] = 1.0f;                          // 行2,列3
+
+	// w 行
+	//   -zn * zf / (zf - zn)
+	result.m[3][2] = (-nearZ * farZ) / (farZ - nearZ); // 行3,列2
+	//   0
+	result.m[3][3] = 0.0f;                             // 行3,列3
+
 	return result;
 }
 

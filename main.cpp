@@ -206,6 +206,8 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
 	MSG msg{};
 
+	ShowWindow(hwnd, SW_SHOW);
+
 #ifdef _DEBUG
 	ID3D12Debug1* debugController = nullptr;
 	if (SUCCEEDED(D3D12GetDebugInterface(IID_PPV_ARGS(&debugController)))) {
@@ -356,6 +358,9 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	hr = device->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, commandAllocator, nullptr, IID_PPV_ARGS(&commandList));
 
 	// コマンドリストの生成がうまくいかなかったので起動できない
+	assert(SUCCEEDED(hr));
+
+	hr = commandList->Close();
 	assert(SUCCEEDED(hr));
 
 	// ============================================
@@ -662,107 +667,26 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	scissorRect.top = 0;
 	scissorRect.bottom = kClientHeight;
 
-
-	// ==================================
-// 画面をクリアする処理が含まれたコマンドリストの記録
-// ==================================
-// これから書き込むバックバッファのインデックスを取得
-	UINT backBufferIndex = swapChain->GetCurrentBackBufferIndex();
-
-	// TransitionBarrierの設定
-	D3D12_RESOURCE_BARRIER barrier{};
-
-	// 今回のバリアはTransition
-	barrier.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
-	// Noneにしておく
-	barrier.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
-	// バリアを張るリソースを指定
-	barrier.Transition.pResource = swapChainResources[backBufferIndex];
-	// 遷移前(現在)のResourcesState
-	barrier.Transition.StateBefore = D3D12_RESOURCE_STATE_PRESENT;
-	// 遷移後のResourcesState
-	barrier.Transition.StateAfter = D3D12_RESOURCE_STATE_RENDER_TARGET;
-	// TransitionBarrierを張る
-	commandList->ResourceBarrier(1, &barrier);
-
-
-	// 描画先のRTVを指定
-	commandList->OMSetRenderTargets(1, &rtvHandles[backBufferIndex], false, nullptr);
-
-	// 指定した色で画面をクリアする
-	float clearColor[] = { 0.1f,0.25f,0.5f,1.0f }; // 青っぽい色 RGBA
-	commandList->ClearRenderTargetView(rtvHandles[backBufferIndex], clearColor, 0, nullptr);
-
-	// =======================================================
-	// コマンドを積む(描画に必要な情報を使って)
-	// =======================================================
-	commandList->RSSetViewports(1, &viewport);					// ビューポートをセット
-	commandList->RSSetScissorRects(1, &scissorRect);			// シザー矩形をセット
-	// RootSignatureを設定。PSOに設定しているけど別途設定が必要
-	commandList->SetGraphicsRootSignature(rootSignature);
-	commandList->SetPipelineState(graphicsPipelineState);		// PSOをセット
-	commandList->IASetVertexBuffers(0, 1, &vertexBufferView);	// VBVをセット
-	// 形状を設定。PSOに設定しているものとはまた別で同じものを設定する必要がある
-	commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-
-
-	// ==================================
-	// CBVを設定する
-	// ==================================
-	// マテリアルCBufferの場所を設定
-	commandList->SetGraphicsRootConstantBufferView(
-		0, // ルートパラメータのインデックス
-		materialResource->GetGPUVirtualAddress() // CBV用リソースのアドレス
-	);
-
-	// WVP用のCBufferの場所を設定
-	commandList->SetGraphicsRootConstantBufferView(1, wvpResource->GetGPUVirtualAddress());
-
-	// 描画コマンド (DrawCall/ドローコール)3頂点で1つの図形を描画
-	commandList->DrawInstanced(3, 1, 0, 0); // 頂点3つで1つの図形を描画
-
-	// 画面に描く処理は全て終わり、画面に映すので状態を遷移
-	// 今回はRenderTargetからPresentにする
-	barrier.Transition.StateBefore = D3D12_RESOURCE_STATE_RENDER_TARGET;
-	barrier.Transition.StateAfter = D3D12_RESOURCE_STATE_PRESENT;
-	// TransitionBarrierを張る
-	commandList->ResourceBarrier(1, &barrier);
-
-	// コマンドリストの記録を終了
-	hr = commandList->Close();
-	assert(SUCCEEDED(hr));
-
-	// ==================================
-	// GUIにキックする
-	// ==================================
-	// GUIにコマンドリストの実行を行わせる
-	ID3D12CommandList* commandlLists[] = { commandList };
-	commandQueue->ExecuteCommandLists(1, commandlLists);
-
-	// GPUにコマンドの実行完了を通知するようにSignalを送る
-	fenceValue++; // 値を更新
-	hr = commandQueue->Signal(fence, fenceValue);
-
-	if (fence->GetCompletedValue() < fenceValue) {
-		fence->SetEventOnCompletion(fenceValue, fenceEvent);
-
-		// イベントが来るまで待機
-		WaitForSingleObject(fenceEvent, INFINITE);
-	}
-
-	// GPUとOSに画面の交換を行うように通知する
-	swapChain->Present(1, 0);
-
-	// 次のフレーム用のコマンドリストを準備
-	hr = commandAllocator->Reset();
-	assert(SUCCEEDED(hr));
-	hr = commandList->Reset(commandAllocator, nullptr);
-	assert(SUCCEEDED(hr));
-
 	// ==================================
 	// オブジェクト初期化、宣言
 	// ==================================
 	Transform transform{ {1.0f,1.0f,1.0f},{0.0f,0.0f,0.0f},{0.0f,0.0f,0.0f} };
+	Transform cameraTransform{ {1.0f,1.0f,1.0f},{0.0f,0.0f,0.0f},{0.0f,0.0f,-5.0f} };
+
+	Matrix4x4* transformationMatrixData{};
+
+	Matrix4x4 worldMatrix = MakeAffineMatrix(transform.scale, transform.rotate, transform.translate);
+	Matrix4x4 cameraMatrix = MakeAffineMatrix(cameraTransform.scale, cameraTransform.rotate, cameraTransform.translate);
+	Matrix4x4 viewMatrix = Matrix4x4::Inverse(cameraMatrix);
+	Matrix4x4 projectionMatrix = Matrix4x4::MakeParspectiveFovMatrix(
+		0.45f, // 視野角
+		static_cast<float>(kClientWidth) / static_cast<float>(kClientHeight), // アスペクト比
+		0.1f, // ニアクリップ距離
+		100.0f // ファークリップ距離
+	);
+
+	Matrix4x4 worldViewProjectionMatrix = Matrix4x4::Multiply(worldMatrix, Matrix4x4::Multiply(viewMatrix, projectionMatrix));
+	transformationMatrixData = &worldViewProjectionMatrix;
 
 	// ウィンドウのxボタンが押されるまでループ
 	while (msg.message != WM_QUIT) {
@@ -775,15 +699,110 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 			//==================================
 			// ゲームの処理 ↓↓
 			//==================================
-			ShowWindow(hwnd, SW_SHOW);
-
 			transform.rotate.y += 0.03f;
 			Matrix4x4 worldMatrix = MakeAffineMatrix(
 				transform.scale,
 				transform.rotate,
 				transform.translate
 			);
-			*wvpData = worldMatrix;
+
+			*wvpData = Matrix4x4::Multiply(
+				Matrix4x4::Multiply(worldMatrix, viewMatrix),
+				projectionMatrix);
+
+			// ==================================
+			// 画面をクリアする処理が含まれたコマンドリストの記録
+			// ==================================
+			// これから書き込むバックバッファのインデックスを取得
+			UINT backBufferIndex = swapChain->GetCurrentBackBufferIndex();
+
+			// 次のフレーム用のコマンドリストを準備
+			hr = commandAllocator->Reset();
+			assert(SUCCEEDED(hr));
+			hr = commandList->Reset(commandAllocator, nullptr);
+			assert(SUCCEEDED(hr));
+
+			// TransitionBarrierの設定
+			D3D12_RESOURCE_BARRIER barrier{};
+
+			// 今回のバリアはTransition
+			barrier.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
+			// Noneにしておく
+			barrier.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
+			// バリアを張るリソースを指定
+			barrier.Transition.pResource = swapChainResources[backBufferIndex];
+			// 遷移前(現在)のResourcesState
+			barrier.Transition.StateBefore = D3D12_RESOURCE_STATE_PRESENT;
+			// 遷移後のResourcesState
+			barrier.Transition.StateAfter = D3D12_RESOURCE_STATE_RENDER_TARGET;
+			// TransitionBarrierを張る
+			commandList->ResourceBarrier(1, &barrier);
+
+			// 描画先のRTVを指定
+			commandList->OMSetRenderTargets(1, &rtvHandles[backBufferIndex], false, nullptr);
+
+			// 指定した色で画面をクリアする
+			float clearColor[] = { 0.1f,0.25f,0.5f,1.0f }; // 青っぽい色 RGBA
+			commandList->ClearRenderTargetView(rtvHandles[backBufferIndex], clearColor, 0, nullptr);
+
+			// =======================================================
+			// コマンドを積む(描画に必要な情報を使って)
+			// =======================================================
+			commandList->RSSetViewports(1, &viewport);					// ビューポートをセット
+			commandList->RSSetScissorRects(1, &scissorRect);			// シザー矩形をセット
+			// RootSignatureを設定。PSOに設定しているけど別途設定が必要
+			commandList->SetGraphicsRootSignature(rootSignature);
+			commandList->SetPipelineState(graphicsPipelineState);		// PSOをセット
+			commandList->IASetVertexBuffers(0, 1, &vertexBufferView);	// VBVをセット
+			// 形状を設定。PSOに設定しているものとはまた別で同じものを設定する必要がある
+			commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
+			// ==================================
+			// CBVを設定する
+			// ==================================
+			// マテリアルCBufferの場所を設定
+			commandList->SetGraphicsRootConstantBufferView(
+				0, // ルートパラメータのインデックス
+				materialResource->GetGPUVirtualAddress() // CBV用リソースのアドレス
+			);
+
+			// WVP用のCBufferの場所を設定
+			commandList->SetGraphicsRootConstantBufferView(1, wvpResource->GetGPUVirtualAddress());
+
+			// 描画コマンド (DrawCall/ドローコール)3頂点で1つの図形を描画
+			commandList->DrawInstanced(3, 1, 0, 0); // 頂点3つで1つの図形を描画
+
+			// 画面に描く処理は全て終わり、画面に映すので状態を遷移
+			// 今回はRenderTargetからPresentにする
+			barrier.Transition.StateBefore = D3D12_RESOURCE_STATE_RENDER_TARGET;
+			barrier.Transition.StateAfter = D3D12_RESOURCE_STATE_PRESENT;
+			// TransitionBarrierを張る
+			commandList->ResourceBarrier(1, &barrier);
+
+			// コマンドリストの記録を終了
+			hr = commandList->Close();
+			assert(SUCCEEDED(hr));
+
+			// ==================================
+			// GUIにキックする
+			// ==================================
+			// GUIにコマンドリストの実行を行わせる
+			ID3D12CommandList* commandlLists[] = { commandList };
+			commandQueue->ExecuteCommandLists(1, commandlLists);
+
+			// GPUとOSに画面の交換を行うように通知する
+			swapChain->Present(1, 0);
+
+			// GPUにコマンドの実行完了を通知するようにSignalを送る
+			fenceValue++; // 値を更新
+			hr = commandQueue->Signal(fence, fenceValue);
+
+			if (fence->GetCompletedValue() < fenceValue) {
+				fence->SetEventOnCompletion(fenceValue, fenceEvent);
+
+				// イベントが来るまで待機
+				WaitForSingleObject(fenceEvent, INFINITE);
+			}
 		}
 	}
 

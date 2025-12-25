@@ -11,6 +11,15 @@ public:
 	static Matrix4x4 Transpose(const Matrix4x4& m);
 	static Matrix4x4 MakeIdentity4x4();
 
+	/// <summary>
+	/// 縦方向の視野角、アスペクト比、近接/遠方クリップ平面から透視投影行列を作成します。
+	/// </summary>
+	/// <param name="fovY">縦方向の視野角。通常はラジアンで指定します。</param>
+	/// <param name="aspect">ビューのアスペクト比（幅 ÷ 高さ）。</param>
+	/// <param name="nearZ">近接クリップ平面までの距離（正の値）。</param>
+	/// <param name="farZ">遠方クリップ平面までの距離（nearZ より大きい正の値）。</param>
+	/// <returns>透視投影を表す 4x4 行列（Matrix4x4）。</returns>
+	static Matrix4x4 MakeParspectiveFovMatrix(float fovY, float aspect, float nearZ, float farZ);
 
 private:
 	static float Determinant3x3(
