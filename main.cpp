@@ -400,10 +400,10 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	// Discripter Heapの生成
 	// ==================================
 	ID3D12DescriptorHeap* rtvDescriptorHeap = CreateDescriptorHeap(device, D3D12_DESCRIPTOR_HEAP_TYPE_RTV, 2, false);
-	D3D12_DESCRIPTOR_HEAP_DESC rtvDescriptorHeapDesc = {};
-	rtvDescriptorHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_RTV; // レンダーターゲットビュー
-	rtvDescriptorHeapDesc.NumDescriptors = 2; // ダブルバッファリングなので2つ
-	hr = device->CreateDescriptorHeap(&rtvDescriptorHeapDesc, IID_PPV_ARGS(&rtvDescriptorHeap));
+	//D3D12_DESCRIPTOR_HEAP_DESC rtvDescriptorHeapDesc = {};
+	//rtvDescriptorHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_RTV; // レンダーターゲットビュー
+	//rtvDescriptorHeapDesc.NumDescriptors = 2; // ダブルバッファリングなので2つ
+	//hr = device->CreateDescriptorHeap(&rtvDescriptorHeapDesc, IID_PPV_ARGS(&rtvDescriptorHeap));
 
 	// ディスクリプタヒープの生成がうまくいかなかったので起動できない
 	assert(SUCCEEDED(hr));
@@ -855,30 +855,22 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	}
 
 	// ==================================
-	// 解放処理
+// ImGuiの解放
+// ==================================
+	ImGui_ImplDX12_Shutdown();
+	ImGui_ImplWin32_Shutdown();
+	ImGui::DestroyContext();
+
+	// ==================================
+	// GPU 同期済みなので GPU 関連リソースを解放
 	// ==================================
 	CloseHandle(fenceEvent);
 	fence->Release();
-	rtvDescriptorHeap->Release();
-	swapChainResources[0]->Release();
-	swapChainResources[1]->Release();
-	swapChain->Release();
-	commandList->Release();
-	commandAllocator->Release();
-	commandQueue->Release();
-	device->Release();
-	useAdapter->Release();
-	dxgiFactory->Release();
-#ifdef _DEBUG
-	debugController->Release();
-#endif
-	CloseWindow(hwnd);
 
-	// =================================
-	// 頂点シェーダー、ピクセルシェーダーの解放
-	// =================================
+	// ★ 修正点: リソースやパイプラインは Device より先に解放する必要があります
 	materialResource->Release();
 	vertexResource->Release();
+	wvpResource->Release(); // 解放漏れを修正
 	graphicsPipelineState->Release();
 	signatureBlob->Release();
 	if (errorBlob) {
@@ -888,26 +880,44 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	pixelShaderBlob->Release();
 	vertexShaderBlob->Release();
 
-	// ==================================
-	// ImGuiの解放
-	// ==================================
-	ImGui_ImplDX12_Shutdown();
-	ImGui_ImplWin32_Shutdown();
-	ImGui::DestroyContext();
+	// SwapChainリソースの解放
+	swapChainResources[0]->Release();
+	swapChainResources[1]->Release();
 
+	// ディスクリプタヒープの解放
+	rtvDescriptorHeap->Release();
+	srvDescriptorHeap->Release(); // 解放漏れを修正
+
+	// コマンドリスト周り
+	commandList->Release();
+	commandAllocator->Release();
+	commandQueue->Release();
+
+	// ★ SwapChain は Device より後に解放する
+	swapChain->Release();
+
+	// Device / Adapter / Factory
+	// ★ これらを最後に解放しないと、上記のリソース解放時にエラーになります
+	device->Release();
+	useAdapter->Release();
+	dxgiFactory->Release();
+
+#ifdef _DEBUG
+	debugController->Release();
+#endif
+	// CloseWindow(hwnd); // DestroyWindow は OS が WM_DESTROY 経由でやるので不要
+
+	// ==================================
 	// リソースリークチェック
+	// ==================================
 #ifdef _DEBUG
 	IDXGIDebug1* debug = nullptr;
 	if (SUCCEEDED(DXGIGetDebugInterface1(0, IID_PPV_ARGS(&debug))) && debug) {
-		debug->ReportLiveObjects(DXGI_DEBUG_ALL, DXGI_DEBUG_RLO_ALL);
 		debug->ReportLiveObjects(DXGI_DEBUG_APP, DXGI_DEBUG_RLO_ALL);
 		debug->ReportLiveObjects(DXGI_DEBUG_D3D12, DXGI_DEBUG_RLO_ALL);
 		debug->Release();
 	}
 #endif
-
-	// 警告時に止まる
-	//infoQueue->SetBreakOnSeverity(D3D12_MESSAGE_SEVERITY_WARNING, false);
 
 	return 0;
 }
