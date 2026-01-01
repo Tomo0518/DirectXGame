@@ -26,6 +26,8 @@
 #include "externals/imgui/imgui_impl_win32.h"
 extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
+#include "externals/DirectXTex/DirectXTex.h"
+
 ID3D12Resource* CreateBufferResource(ID3D12Device* device, size_t sizeInBytes) {
 	assert(device != nullptr);
 
@@ -176,8 +178,97 @@ IDxcBlob* CompileShader(
 	return shaderBlob;
 }
 
+// ===========================================
+// テクスチャ制御
+// ===========================================
+// テクスチャを読み込む
+DirectX::ScratchImage LoadTexture(const std::string& filePath) {
+	// テクスチャファイルを読んでプログラムを扱えるようにする
+	DirectX::ScratchImage image{};
+	std::wstring filePathW = ConvertString(filePath);
+	HRESULT hr = DirectX::LoadFromWICFile(
+		filePathW.c_str(),
+		DirectX::WIC_FLAGS_FORCE_SRGB,
+		nullptr,
+		image
+	);
+	assert(SUCCEEDED(hr));
+
+	// ミニマップの作成
+	DirectX::ScratchImage mipImages{};
+	hr = DirectX::GenerateMipMaps(
+		image.GetImages(),
+		image.GetImageCount(),
+		image.GetMetadata(),
+		DirectX::TEX_FILTER_SRGB,
+		0,
+		mipImages
+	);
+	assert(SUCCEEDED(hr));
+
+	// ミニマップ付きのデータを返す
+	return mipImages;
+}
+
+ID3D12Resource* CreateTextureResource(ID3D12Device* device, const DirectX::TexMetadata& metadata) {
+	/* 1. metadataをもとにリソース設定を行う
+	--------------------------------------*/
+	D3D12_RESOURCE_DESC resourceDesc{};
+	resourceDesc.Width = UINT(metadata.width);					// Textureの幅
+	resourceDesc.Height = UINT(metadata.height);				// Textureの高さ
+	resourceDesc.MipLevels = UINT16(metadata.mipLevels);		// ミップマップのレベル数
+	resourceDesc.DepthOrArraySize = UINT16(metadata.arraySize);	// 奥行き or 配列Textureの配列数
+	resourceDesc.Format = metadata.format;						// 色フォーマット
+	resourceDesc.SampleDesc.Count = 1;							// サンプリング数(1固定)
+	resourceDesc.Dimension = D3D12_RESOURCE_DIMENSION(metadata.dimension); // 2D Texture
+
+	/* 2. 利用するヒープの設定
+	----------------------------------------*/
+	D3D12_HEAP_PROPERTIES heapProperties{};
+	heapProperties.Type = D3D12_HEAP_TYPE_CUSTOM; // 細かい設定を行う
+	heapProperties.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY_WRITE_BACK; // CPUから直接書き込む
+	heapProperties.MemoryPoolPreference = D3D12_MEMORY_POOL_L0; // CPUからのアクセスが速いメモリを使う
+
+	/* 3. リソースの生成
+	---------------------------------------*/
+	ID3D12Resource* resource = nullptr;
+	HRESULT hr = device->CreateCommittedResource(
+		&heapProperties,					// ヒープ設定
+		D3D12_HEAP_FLAG_NONE,				// ヒープフラグ
+		&resourceDesc,						// リソース設定
+		D3D12_RESOURCE_STATE_GENERIC_READ,	// リソースの使用法指定
+		nullptr,							// 最初のリソース状態用のクリア値(テクスチャでは不要)
+		IID_PPV_ARGS(&resource)				// 作成するリソースへのポインタ
+	);
+	assert(SUCCEEDED(hr));
+	return resource;
+}
+
+// テクスチャへデータ転送
+void UploadTextureData(ID3D12Resource* texture, const DirectX::ScratchImage& mipImages) {
+	// Meta情報を取得
+	const DirectX::TexMetadata& metadata = mipImages.GetMetadata();
+	// 全ミップマップ分ループ
+	for (size_t mipLevel = 0; mipLevel < metadata.mipLevels; ++mipLevel) {
+		// ミップマップレベルに応じたImage情報を取得
+		const DirectX::Image* img = mipImages.GetImage(mipLevel, 0, 0);
+		
+		// テクスチャへデータ転送
+		HRESULT hr = texture->WriteToSubresource(
+			UINT(mipLevel),		// ミップマップレベル
+			nullptr,			// 全領域へコピー
+			img->pixels,		// 転送元データポインタ
+			UINT(img->rowPitch),	// 1ラインのサイズ
+			UINT(img->slicePitch)	// 1枚のサイズ
+		);
+		assert(SUCCEEDED(hr));
+	}
+}
+
 // Windowsアプリでのエントリーポイント(main関数)
 int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
+
+	CoInitializeEx(0, COINIT_MULTITHREADED);
 
 	WNDCLASS wc{  };
 
@@ -855,22 +946,21 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	}
 
 	// ==================================
-// ImGuiの解放
-// ==================================
+	// ImGuiの解放
+	// ==================================
 	ImGui_ImplDX12_Shutdown();
 	ImGui_ImplWin32_Shutdown();
 	ImGui::DestroyContext();
 
 	// ==================================
-	// GPU 同期済みなので GPU 関連リソースを解放
+	// GPU 関連リソースを解放
 	// ==================================
 	CloseHandle(fenceEvent);
 	fence->Release();
 
-	// ★ 修正点: リソースやパイプラインは Device より先に解放する必要があります
 	materialResource->Release();
 	vertexResource->Release();
-	wvpResource->Release(); // 解放漏れを修正
+	wvpResource->Release();
 	graphicsPipelineState->Release();
 	signatureBlob->Release();
 	if (errorBlob) {
@@ -886,18 +976,16 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
 	// ディスクリプタヒープの解放
 	rtvDescriptorHeap->Release();
-	srvDescriptorHeap->Release(); // 解放漏れを修正
+	srvDescriptorHeap->Release();
 
 	// コマンドリスト周り
 	commandList->Release();
 	commandAllocator->Release();
 	commandQueue->Release();
 
-	// ★ SwapChain は Device より後に解放する
+	// SwapChain は Device より後に解放する
 	swapChain->Release();
 
-	// Device / Adapter / Factory
-	// ★ これらを最後に解放しないと、上記のリソース解放時にエラーになります
 	device->Release();
 	useAdapter->Release();
 	dxgiFactory->Release();
@@ -905,7 +993,6 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 #ifdef _DEBUG
 	debugController->Release();
 #endif
-	// CloseWindow(hwnd); // DestroyWindow は OS が WM_DESTROY 経由でやるので不要
 
 	// ==================================
 	// リソースリークチェック

@@ -94,6 +94,9 @@
     <Filter Include="ソース ファイル\TomoEngine\imgui">
       <UniqueIdentifier>{01cd5099-430a-4a90-b2fc-51220e02f879}</UniqueIdentifier>
     </Filter>
+    <Filter Include="ソース ファイル\TomoEngine\Core\Utility\Texture">
+      <UniqueIdentifier>{ad9a6852-d45b-4438-9c51-7a285f6a083a}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -220,6 +223,9 @@
     </ClInclude>
     <ClInclude Include="DescriptorHeapHelper.h">
       <Filter>ソース ファイル\TomoEngine\Core\Utility</Filter>
+    </ClInclude>
+    <ClInclude Include="LoadTexture.h">
+      <Filter>ソース ファイル\TomoEngine\Core\Utility\Texture</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
