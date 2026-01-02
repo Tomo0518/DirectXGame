@@ -91,6 +91,12 @@
     <Filter Include="ソース ファイル\TomoEngine\Math\3D\Affine3D">
       <UniqueIdentifier>{1d6157d0-586a-4bf7-b9fa-04d08f00369d}</UniqueIdentifier>
     </Filter>
+    <Filter Include="ソース ファイル\TomoEngine\imgui">
+      <UniqueIdentifier>{01cd5099-430a-4a90-b2fc-51220e02f879}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ソース ファイル\TomoEngine\Core\Utility\Texture">
+      <UniqueIdentifier>{ad9a6852-d45b-4438-9c51-7a285f6a083a}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -122,6 +128,33 @@
     </ClCompile>
     <ClCompile Include="Affine3D.cpp">
       <Filter>ソース ファイル\TomoEngine\Math\3D\Affine3D</Filter>
+    </ClCompile>
+    <ClCompile Include="externals\imgui\imgui.cpp">
+      <Filter>ソース ファイル\TomoEngine\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="externals\imgui\imgui_demo.cpp">
+      <Filter>ソース ファイル\TomoEngine\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="externals\imgui\imgui_draw.cpp">
+      <Filter>ソース ファイル\TomoEngine\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="externals\imgui\imgui_impl_dx12.cpp">
+      <Filter>ソース ファイル\TomoEngine\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="externals\imgui\imgui_impl_win32.cpp">
+      <Filter>ソース ファイル\TomoEngine\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="externals\imgui\imgui_tables.cpp">
+      <Filter>ソース ファイル\TomoEngine\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="externals\imgui\imgui_widgets.cpp">
+      <Filter>ソース ファイル\TomoEngine\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="DescriptorHeapHelper.cpp">
+      <Filter>ソース ファイル\TomoEngine\Core\Utility</Filter>
+    </ClCompile>
+    <ClCompile Include="Vector2.cpp">
+      <Filter>ソース ファイル\TomoEngine\Math\2D</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -167,6 +200,39 @@
     <ClInclude Include="Affine3D.h">
       <Filter>ソース ファイル\TomoEngine\Math\3D\Affine3D</Filter>
     </ClInclude>
+    <ClInclude Include="externals\imgui\imconfig.h">
+      <Filter>ソース ファイル\TomoEngine\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="externals\imgui\imgui.h">
+      <Filter>ソース ファイル\TomoEngine\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="externals\imgui\imgui_impl_dx12.h">
+      <Filter>ソース ファイル\TomoEngine\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="externals\imgui\imgui_impl_win32.h">
+      <Filter>ソース ファイル\TomoEngine\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="externals\imgui\imgui_internal.h">
+      <Filter>ソース ファイル\TomoEngine\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="externals\imgui\imstb_rectpack.h">
+      <Filter>ソース ファイル\TomoEngine\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="externals\imgui\imstb_textedit.h">
+      <Filter>ソース ファイル\TomoEngine\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="externals\imgui\imstb_truetype.h">
+      <Filter>ソース ファイル\TomoEngine\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="DescriptorHeapHelper.h">
+      <Filter>ソース ファイル\TomoEngine\Core\Utility</Filter>
+    </ClInclude>
+    <ClInclude Include="LoadTexture.h">
+      <Filter>ソース ファイル\TomoEngine\Core\Utility\Texture</Filter>
+    </ClInclude>
+    <ClInclude Include="Vector2.h">
+      <Filter>ソース ファイル\TomoEngine\Math\2D</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="Object3d.VS.hlsl">
@@ -175,5 +241,15 @@
     <FxCompile Include="Object3d.PS.hlsl">
       <Filter>HLSL</Filter>
     </FxCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="externals\imgui\LICENSE.txt">
+      <Filter>ソース ファイル\TomoEngine\imgui</Filter>
+    </Text>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Object3d.hlsli">
+      <Filter>HLSL</Filter>
+    </None>
   </ItemGroup>
 </Project>
