@@ -153,6 +153,9 @@
     <ClCompile Include="DescriptorHeapHelper.cpp">
       <Filter>ソース ファイル\TomoEngine\Core\Utility</Filter>
     </ClCompile>
+    <ClCompile Include="Vector2.cpp">
+      <Filter>ソース ファイル\TomoEngine\Math\2D</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Logger.h">
@@ -227,6 +230,9 @@
     <ClInclude Include="LoadTexture.h">
       <Filter>ソース ファイル\TomoEngine\Core\Utility\Texture</Filter>
     </ClInclude>
+    <ClInclude Include="Vector2.h">
+      <Filter>ソース ファイル\TomoEngine\Math\2D</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="Object3d.VS.hlsl">
@@ -240,5 +246,10 @@
     <Text Include="externals\imgui\LICENSE.txt">
       <Filter>ソース ファイル\TomoEngine\imgui</Filter>
     </Text>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Object3d.hlsli">
+      <Filter>HLSL</Filter>
+    </None>
   </ItemGroup>
 </Project>
