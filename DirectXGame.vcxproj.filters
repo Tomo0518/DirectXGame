@@ -103,9 +103,6 @@
     <Filter Include="ソース ファイル\TomoEngine\Engine\RHI\D3D12\Descriptor">
       <UniqueIdentifier>{b4a5afb6-20ec-4784-adb2-07516bc6c5cc}</UniqueIdentifier>
     </Filter>
-    <Filter Include="ソース ファイル\TomoEngine\Engine\RHI\D3D12\Shader">
-      <UniqueIdentifier>{b5b554da-98d7-4966-9df9-18778841b23b}</UniqueIdentifier>
-    </Filter>
     <Filter Include="ソース ファイル\TomoEngine\Engine\RHI\D3D12\Debug">
       <UniqueIdentifier>{6c01730e-74a5-48bf-aa44-c78cd3d3e39c}</UniqueIdentifier>
     </Filter>
@@ -153,6 +150,9 @@
     </Filter>
     <Filter Include="ソース ファイル\TomoEngine\Engine\Asset">
       <UniqueIdentifier>{61d35ff0-6b19-4a28-a3d9-40c697507fb9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ソース ファイル\TomoEngine\Engine\RHI\D3D12\Resources\Shader">
+      <UniqueIdentifier>{b5b554da-98d7-4966-9df9-18778841b23b}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
