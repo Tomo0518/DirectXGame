@@ -1181,6 +1181,16 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	// SRVを生成
 	device->CreateShaderResourceView(textureResource2.Get(), &srvDesc2, textureSrvHandleCPU2);
 
+	// ======================================
+	// ゲーム内の変数の初期化、宣言	
+	// ======================================
+	bool useMonsterBall = true;
+
+
+
+	// ============================================
+	// ゲームループ
+	// ============================================
 	// ウィンドウのxボタンが押されるまでループ
 	while (msg.message != WM_QUIT) {
 		// Windowsメッセージが来ていたら最優先で処理させる
@@ -1263,6 +1273,11 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 			ImGui::DragFloat3("Center", &sphere.center.x, 0.01f);
 			ImGui::DragFloat("Radius", &sphere.radius, 0.01f);
 			ImGui::DragFloat3("Rotation", &sphere.rotation.x, 0.1f);
+
+			// 線
+			ImGui::Separator();
+			ImGui::Checkbox("Use MonsterBall Texture", &useMonsterBall);
+
 			ImGui::End();
 
 			// 開発用UIの処理
@@ -1348,25 +1363,31 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 			commandList->SetGraphicsRootConstantBufferView(1, wvpResource.Get()->GetGPUVirtualAddress());
 
 			// SRVのDescriptorTableの先頭を設定。2はrootParameters[2]で設定しているので2になる
-			commandList->SetGraphicsRootDescriptorTable(2, textureSrvHandleGPU2);
+			commandList->SetGraphicsRootDescriptorTable(2, useMonsterBall ? textureSrvHandleGPU2 : textureSrvHandleGPU);
 
 			// 描画コマンド (DrawCall/ドローコール)3頂点で1つの図形を描画
 			commandList->DrawInstanced(6, 1, 0, 0); // 頂点3つで1つの図形を描画
 
-			// === Sprite描画 ====
-			commandList->IASetVertexBuffers(0, 1, &vertexBufferViewSprite);
-			// WVP用のCBufferの場所を設定
-			commandList->SetGraphicsRootConstantBufferView(1, transformationMatrixResourceSprite.Get()->GetGPUVirtualAddress());
-			// 描画コマンド
-			commandList->DrawInstanced(6, 1, 0, 0); // 頂点3つで1つの図形を描画
-
-			// === Sphere描画 ===
+			// ==================================
+			// Sphere描画
+			// =================================
 			// 頂点バッファをセット
 			commandList->IASetVertexBuffers(0, 1, &vertexBufferViewSphere);
 			// WVP用のCBufferの場所を設定 (Sphere用の行列リソースを指定)
 			commandList->SetGraphicsRootConstantBufferView(1, wvpResourceSphere.Get()->GetGPUVirtualAddress());
 			// 描画コマンド (頂点数分を描画)
 			commandList->DrawInstanced(kSphereVertexCount, 1, 0, 0);
+
+			// ==================================
+			// Sprite描画
+			// =================================
+			commandList->SetGraphicsRootDescriptorTable(2, textureSrvHandleGPU); // SpriteはUvCheckerを使う
+
+			commandList->IASetVertexBuffers(0, 1, &vertexBufferViewSprite);
+			// WVP用のCBufferの場所を設定
+			commandList->SetGraphicsRootConstantBufferView(1, transformationMatrixResourceSprite.Get()->GetGPUVirtualAddress());
+			// 描画コマンド
+			commandList->DrawInstanced(6, 1, 0, 0); // 頂点3つで1つの図形を描画
 
 			// ==================================
 			// ImGuiの描画

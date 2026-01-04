@@ -183,9 +183,6 @@
     <ClCompile Include="Affine3D.cpp">
       <Filter>ソース ファイル\TomoEngine\Engine\Math\3D\Affine3D</Filter>
     </ClCompile>
-    <ClCompile Include="DescriptorHeapHelper.cpp">
-      <Filter>ソース ファイル\TomoEngine\Engine\Core\Utility</Filter>
-    </ClCompile>
     <ClCompile Include="Vector2.cpp">
       <Filter>ソース ファイル\TomoEngine\Engine\Math\2D</Filter>
     </ClCompile>
@@ -215,6 +212,9 @@
     </ClCompile>
     <ClCompile Include="ResourceObject.cpp">
       <Filter>ソース ファイル\TomoEngine\Engine\RHI\D3D12\Resources\ResourceObject</Filter>
+    </ClCompile>
+    <ClCompile Include="DescriptorHeapHelper.cpp">
+      <Filter>ソース ファイル\TomoEngine\Engine\RHI\D3D12\Device</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -257,9 +257,6 @@
     <ClInclude Include="Affine3D.h">
       <Filter>ソース ファイル\TomoEngine\Engine\Math\3D\Affine3D</Filter>
     </ClInclude>
-    <ClInclude Include="DescriptorHeapHelper.h">
-      <Filter>ソース ファイル\TomoEngine\Engine\Core\Utility</Filter>
-    </ClInclude>
     <ClInclude Include="LoadTexture.h">
       <Filter>ソース ファイル\TomoEngine\Engine\Core\Utility\Texture</Filter>
     </ClInclude>
@@ -301,6 +298,9 @@
     </ClInclude>
     <ClInclude Include="ResourcesIncludes.h">
       <Filter>ソース ファイル\TomoEngine\Engine\RHI\D3D12\Resources</Filter>
+    </ClInclude>
+    <ClInclude Include="DescriptorHeapHelper.h">
+      <Filter>ソース ファイル\TomoEngine\Engine\RHI\D3D12\Device</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
