@@ -866,6 +866,51 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	assert(SUCCEEDED(hr));
 
 	// ==================================
+	// Sprite用のResourceの生成
+	// ==================================
+	ID3D12Resource* vertexResourceSprite = CreateBufferResource(device, sizeof(VertexData) * 6); // 頂点6つ分のサイズ
+
+	// 頂点バッファビューを作成する
+	D3D12_VERTEX_BUFFER_VIEW vertexBufferViewSprite = {};
+	// リソースの先頭のアドレスから使う
+	vertexBufferViewSprite.BufferLocation = vertexResourceSprite->GetGPUVirtualAddress();
+	// 使用するリソースのサイズは頂点6つ分のサイズ
+	vertexBufferViewSprite.SizeInBytes = sizeof(VertexData) * 6;
+	// 1頂点あたりのサイズ
+	vertexBufferViewSprite.StrideInBytes = sizeof(VertexData);
+
+	/*頂点データを設定する*/
+	VertexData* vertexDataSprite = nullptr;
+	vertexResourceSprite->Map(0, nullptr, reinterpret_cast<void**>(&vertexDataSprite));
+	// 一枚目の三角形
+	vertexDataSprite[0].position = { 0.0f, 360.0f, 0.0f, 1.0f }; // 左下
+	vertexDataSprite[0].texcoord = { 0.0f, 1.0f };
+	vertexDataSprite[1].position = { 0.0f, 0.0f, 0.0f, 1.0f }; // 左上
+	vertexDataSprite[1].texcoord = { 0.0f, 0.0f };
+	vertexDataSprite[2].position = { 640.0f, 360.0f, 0.0f, 1.0f }; // 右下
+	vertexDataSprite[2].texcoord = { 1.0f, 1.0f };
+
+	// 二枚目の三角形
+	vertexDataSprite[3].position = { 0.0f, 0.0f, 0.0f, 1.0f }; // 左上
+	vertexDataSprite[3].texcoord = { 0.0f, 0.0f };
+	vertexDataSprite[4].position = { 640.0f, 0.0f, 0.0f, 1.0f }; // 右上
+	vertexDataSprite[4].texcoord = { 1.0f, 0.0f };
+	vertexDataSprite[5].position = { 640.0f, 360.0f, 0.0f, 1.0f }; // 右下
+	vertexDataSprite[5].texcoord = { 1.0f, 1.0f };
+
+	// Sprite用のTransformationMatrix用のリソースを作る
+	ID3D12Resource* transformationMatrixResourceSprite = CreateBufferResource(device, sizeof(Matrix4x4));
+	// データを書き込む
+	Matrix4x4* transformationMatrixDataSprite = nullptr;
+	// 書き込むためのアドレスを取得
+	transformationMatrixResourceSprite->Map(0, nullptr, reinterpret_cast<void**>(&transformationMatrixDataSprite));
+	// 単位行列を書き込む
+	*transformationMatrixDataSprite = Matrix4x4::MakeIdentity4x4();
+
+	// CPUで動かす用の行列を用意
+	Transform transformSprite{ {1.0f,1.0f,1.0f},{0.0f,0.0f,0.0f},{0.0f,0.0f,0.0f} };
+
+	// ==================================
 	// DepthStencil用のResourceの生成
 	// ==================================
 	ID3D12Resource* depthStencilResource = CreateDepthStancilTextureResourece(device, kClientWidth, kClientHeight);
@@ -1100,6 +1145,28 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 			float clearColor[] = { 0.1f,0.25f,0.5f,1.0f }; // 青っぽい色 RGBA
 			commandList->ClearRenderTargetView(rtvHandles[backBufferIndex], clearColor, 0, nullptr);
 
+
+			/* Spriteの更新 */
+			// 行列計算
+			Matrix4x4 worldMatrixSprite = MakeAffineMatrix(
+				transformSprite.scale,
+				transformSprite.rotate,
+				transformSprite.translate
+			);
+			Matrix4x4 viewMatrixSprite = Matrix4x4::MakeIdentity4x4(); // 視点座標は原点
+			Matrix4x4 projectionMatrixSprite = Matrix4x4::MakeOrthographicMatrix(
+				0.0f, 0.0f,
+				static_cast<float>(kClientWidth),  // 横幅
+				static_cast<float>(kClientHeight), // 縦幅
+				0.0f,  // ニアクリップ距離
+				100.0f // ファークリップ距離
+			);
+
+			Matrix4x4 worldViewProjectionMatrixSprite = Matrix4x4::Multiply(
+				worldMatrixSprite, Matrix4x4::Multiply(viewMatrixSprite, projectionMatrixSprite));
+
+			*transformationMatrixDataSprite = worldViewProjectionMatrixSprite;
+
 			// =======================================================
 			// コマンドを積む(描画に必要な情報を使って)
 			// =======================================================
@@ -1132,6 +1199,12 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 			// 描画コマンド (DrawCall/ドローコール)3頂点で1つの図形を描画
 			commandList->DrawInstanced(6, 1, 0, 0); // 頂点3つで1つの図形を描画
 
+			// === Sprite描画 ====
+			commandList->IASetVertexBuffers(0, 1, &vertexBufferViewSprite);
+			// WVP用のCBufferの場所を設定
+			commandList->SetGraphicsRootConstantBufferView(1, transformationMatrixResourceSprite->GetGPUVirtualAddress());
+			// 描画コマンド
+			commandList->DrawInstanced(6, 1, 0, 0); // 頂点3つで1つの図形を描画
 
 			// ==================================
 			// ImGuiの描画
@@ -1262,7 +1335,6 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
 	// ==================================
 	// リソースリークチェック
-	// ※ ここで落ちる場合は、ReportLiveObjects を 1回にする or DXGI_DEBUG_APP のみにする等で切り分け
 	// ==================================
 #ifdef _DEBUG
 	IDXGIDebug1* debug = nullptr;
