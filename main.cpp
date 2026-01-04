@@ -1126,6 +1126,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 			// マテリアルカラーを ImGui から編集
 			ImGui::Begin("Material");
 			ImGui::ColorEdit4("Color", materialColor); // 0〜1 の RGBA
+			ImGui::DragFloat3("SpritePos", &transformSprite.translate.x, 1.0f);
 			ImGui::End();
 
 			// 開発用UIの処理
@@ -1274,16 +1275,23 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	// アプリが保持している D3D12 リソース類
 	// （PSO/RootSig/Resource/Heap の順でOK）
 	// ==================================
+	// Object3D用のリソース解放
 	if (materialResource) { materialResource->Release(); materialResource = nullptr; }
 	if (vertexResource) { vertexResource->Release(); vertexResource = nullptr; }
 	if (wvpResource) { wvpResource->Release(); wvpResource = nullptr; }
 
+	// Sprite用のリソース解放
+	if (transformationMatrixResourceSprite) { transformationMatrixResourceSprite->Release(); transformationMatrixResourceSprite = nullptr; }
+	if (vertexResourceSprite) { vertexResourceSprite->Release(); vertexResourceSprite = nullptr; }
+
+	// テクスチャリソース解放
 	if (textureResource) { textureResource->Release(); textureResource = nullptr; }
 
+	// DepthStencilリソース解放
 	if (depthStencilResource) { depthStencilResource->Release(); depthStencilResource = nullptr; }
 
+	// PSO/RootSig/ShaderBlob解放
 	if (graphicsPipelineState) { graphicsPipelineState->Release(); graphicsPipelineState = nullptr; }
-
 	if (rootSignature) { rootSignature->Release(); rootSignature = nullptr; }
 	if (signatureBlob) { signatureBlob->Release(); signatureBlob = nullptr; }
 	if (errorBlob) { errorBlob->Release(); errorBlob = nullptr; }
