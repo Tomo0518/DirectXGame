@@ -208,6 +208,36 @@ Matrix4x4 Matrix4x4::MakeParspectiveFovMatrix(float fovY, float aspect, float ne
 	return result;
 }
 
+// left/top/right/bottom 指定（row-major + row vector * matrix 前提）
+// 画面座標系: (left,top) が左上、(right,bottom) が右下
+Matrix4x4 Matrix4x4::MakeOrthographicMatrix(float left, float top, float right, float bottom, float nearZ, float farZ) {
+	Matrix4x4 result = MakeIdentity4x4();
+
+	const float width = right - left;
+	const float height = bottom - top;
+	const float depth = farZ - nearZ;
+
+	// 0除算回避（デバッグ用途）
+	// 要件に合わせて assert にしてもよい
+	if (width == 0.0f || height == 0.0f || depth == 0.0f) {
+		return result;
+	}
+
+	// x: [left,right] -> [-1, 1]
+	result.m[0][0] = 2.0f / width;
+	result.m[3][0] = -(right + left) / width;
+
+	// y: [top,bottom] -> [ 1,-1 ]（y下向きの画面座標を想定）
+	result.m[1][1] = -2.0f / height;
+	result.m[3][1] = (bottom + top) / height;
+
+	// z: [near,far] -> [0,1]（D3Dの深度レンジ）
+	result.m[2][2] = 1.0f / depth;
+	result.m[3][2] = -nearZ / depth;
+
+	return result;
+}
+
 #pragma endregion
 float Matrix4x4::Determinant3x3(
 	float a00, float a01, float a02,

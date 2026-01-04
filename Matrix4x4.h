@@ -21,6 +21,9 @@ public:
 	/// <returns>透視投影を表す 4x4 行列（Matrix4x4）。</returns>
 	static Matrix4x4 MakeParspectiveFovMatrix(float fovY, float aspect, float nearZ, float farZ);
 
+	//（left/top/right/bottom 指定）
+	static Matrix4x4 MakeOrthographicMatrix(float left, float top, float right, float bottom, float nearZ, float farZ);
+
 private:
 	static float Determinant3x3(
 		float a00, float a01, float a02,
