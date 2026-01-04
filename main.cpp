@@ -2,32 +2,11 @@
 #include <cstdint>
 #include <string>
 #include <format>
-#include "ConvertString.h"
-#include "Utility.h"
+
+#include "TomoEngine.h"
 
 #include<cassert>
 
-#include <d3d12.h>
-#pragma comment(lib, "d3d12.lib")
-
-#include <dxgi1_6.h>
-#pragma comment(lib, "dxgi.lib")
-
-#include <dxgidebug.h>
-#pragma comment(lib, "dxguid.lib")
-
-#include <dxcapi.h>
-#pragma comment(lib, "dxcompiler.lib")
-
-#include "Math.h"
-
-#include "externals/imgui/imgui.h"
-#include "externals/imgui/imgui_impl_dx12.h"
-#include "externals/imgui/imgui_impl_win32.h"
-extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
-
-#include "externals/DirectXTex/DirectXTex.h"
-#include "externals/DirectXTex/d3dx12.h"
 #include <vector>
 
 ID3D12Resource* CreateBufferResource(ID3D12Device* device, size_t sizeInBytes) {
