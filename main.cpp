@@ -11,7 +11,7 @@
 
 #include "wrl.h"
 
-ID3D12Resource* CreateBufferResource(const Microsoft::WRL::ComPtr<ID3D12Device>& device, size_t sizeInBytes) {
+Microsoft::WRL::ComPtr<ID3D12Resource> CreateBufferResource(const Microsoft::WRL::ComPtr<ID3D12Device>& device, size_t sizeInBytes) {
 	assert(device != nullptr);
 
 	// アップロードヒープの設定
@@ -32,7 +32,7 @@ ID3D12Resource* CreateBufferResource(const Microsoft::WRL::ComPtr<ID3D12Device>&
 	resDesc.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
 	resDesc.Flags = D3D12_RESOURCE_FLAG_NONE;
 
-	ID3D12Resource* resource = nullptr;
+	Microsoft::WRL::ComPtr<ID3D12Resource> resource = nullptr;
 	HRESULT hr = device->CreateCommittedResource(
 		&heapProperties,
 		D3D12_HEAP_FLAG_NONE,
@@ -65,7 +65,7 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT msg,
 	return DefWindowProcW(hwnd, msg, wparam, lpram);
 }
 
-IDxcBlob* CompileShader(
+Microsoft::WRL::ComPtr<IDxcBlob> CompileShader(
 	// compilerするShaderファイルへのパス
 	const std::wstring& filePath,
 	// compilerに使用するProfile
@@ -78,86 +78,72 @@ IDxcBlob* CompileShader(
 	// ========================================
 	// 1.hlslファイルの読み込み
 	// ========================================
-	// これからシェーダーをコンパイルする旨をログに出す
 	Log(ConvertString(std::format(L"Begin CompileShader, path:{},profile:{}\n", filePath, profile)));
-	// ファイルを読み込む
-	IDxcBlobEncoding* shaderSource = nullptr;
-	HRESULT hr = dxcUtils->LoadFile(
-		filePath.c_str(),		// 読み込むファイルパス
-		nullptr,				// 文字コードの自動判別
-		&shaderSource			// 読み込んだファイルのデータ
-	);
 
-	// ファイルの読み込みに失敗したら止める
+	Microsoft::WRL::ComPtr<IDxcBlobEncoding> shaderSource = nullptr;
+	HRESULT hr = dxcUtils->LoadFile(
+		filePath.c_str(),
+		nullptr,
+		&shaderSource
+	);
 	assert(SUCCEEDED(hr));
 
-	// 読み込んだファイルの内容を設定する
 	DxcBuffer shaderSourceBuffer;
-	shaderSourceBuffer.Ptr = shaderSource->GetBufferPointer(); // 読み込んだデータへのポインタ
-	shaderSourceBuffer.Size = shaderSource->GetBufferSize(); // 読み込んだデータのサイズ
-	shaderSourceBuffer.Encoding = DXC_CP_ACP; // UTF-8の文字コードであることを通知
+	shaderSourceBuffer.Ptr = shaderSource->GetBufferPointer();
+	shaderSourceBuffer.Size = shaderSource->GetBufferSize();
+	shaderSourceBuffer.Encoding = DXC_CP_ACP;
 
 	// ========================================
 	// 2.Compileする
 	// ========================================
 	LPCWSTR arguments[] = {
-		filePath.c_str(),			// コンパイル対象のhlslファイル名
-		L"-E", L"main",				// エントリーポイントの指定。基本的にmain以外にはしない
-		L"-T", profile,				// ShaderProfileの設定
-		L"-Zi",	L"-Qembed_debug",	// デバッグ情報を埋め込む
-		L"-Od",						// 最適化を外しておく
-		L"-Zpr",                    // メモリレイアウトは行優先
+		filePath.c_str(),
+		L"-E", L"main",
+		L"-T", profile,
+		L"-Zi",	L"-Qembed_debug",
+		L"-Od",
+		L"-Zpr",
 	};
 
-	// 実際にShaderをコンパイルする
-	IDxcResult* shaderResult = nullptr;
+	Microsoft::WRL::ComPtr<IDxcResult> shaderResult = nullptr;
 	hr = dxcCompiler->Compile(
-		&shaderSourceBuffer,		// コンパイルするソースコード
-		arguments,					// コンパイルオプション
-		_countof(arguments),		// コンパイルオプションの数
-		includeHandler,				// インクルードハンドラ
-		IID_PPV_ARGS(&shaderResult) // コンパイル結果
+		&shaderSourceBuffer,
+		arguments,
+		_countof(arguments),
+		includeHandler,
+		IID_PPV_ARGS(&shaderResult)
 	);
-
-	// コンパイルエラーではなくdxcが起動できないなど致命的な状況
 	assert(SUCCEEDED(hr));
 
 	// ========================================
 	// 3.警告・エラーの確認
 	// ========================================
-	// 警告・エラーがあればログに出して止める
-	IDxcBlobUtf8* shaderError = nullptr;
+	Microsoft::WRL::ComPtr<IDxcBlobUtf8> shaderError = nullptr;
 	shaderResult->GetOutput(
-		DXC_OUT_ERRORS,				// エラー・警告メッセージの取得
-		IID_PPV_ARGS(&shaderError),	// 取得するインターフェース
+		DXC_OUT_ERRORS,
+		IID_PPV_ARGS(&shaderError),
 		nullptr
 	);
 
 	if (shaderError != nullptr && shaderError->GetStringLength() != 0) {
 		Log(shaderError->GetStringPointer());
-		assert(false); // コンパイルエラー・警告が出ているので止める
+		assert(false);
 	}
 
 	// ========================================
 	// 4.コンパイル結果を受け取って返す
 	// ========================================
-	// コンパイル結果から実行用のバイナリ部分を取得
-	IDxcBlob* shaderBlob = nullptr;
+	Microsoft::WRL::ComPtr<IDxcBlob> shaderBlob = nullptr;
 	hr = shaderResult->GetOutput(
-		DXC_OUT_OBJECT,				// 実行用バイナリの取得
-		IID_PPV_ARGS(&shaderBlob),	// 取得するインターフェース
+		DXC_OUT_OBJECT,
+		IID_PPV_ARGS(&shaderBlob),
 		nullptr
 	);
 	assert(SUCCEEDED(hr));
 
-	// 成功したログを出す
 	Log(ConvertString(std::format(L"Compile Succeeded,path:{},profile:{}\n", filePath, profile)));
 
-	// もう使わないリソースを開放
-	shaderSource->Release();
-	shaderResult->Release();
-
-	// 実行用のバイナリを返す
+	// ComPtrなので自動的にReleaseされる
 	return shaderBlob;
 }
 
@@ -194,13 +180,13 @@ DirectX::ScratchImage LoadTexture(const std::string& filePath) {
 }
 
 [[nodiscard]]
-ID3D12Resource* UploadTextureData(const Microsoft::WRL::ComPtr<ID3D12Resource>& texture, const DirectX::ScratchImage& mipImages, const Microsoft::WRL::ComPtr<ID3D12Device>& device,
+Microsoft::WRL::ComPtr<ID3D12Resource> UploadTextureData(const Microsoft::WRL::ComPtr<ID3D12Resource>& texture, const DirectX::ScratchImage& mipImages, const Microsoft::WRL::ComPtr<ID3D12Device>& device,
 	const Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList>& commandList) {
 	std::vector<D3D12_SUBRESOURCE_DATA> subresources;
 	DirectX::PrepareUpload(device.Get(), mipImages.GetImages(), mipImages.GetImageCount(), mipImages.GetMetadata(), subresources);
 	uint64_t intermediateSize = GetRequiredIntermediateSize(texture.Get(), 0, UINT(subresources.size()));
-	ID3D12Resource* intermediateResource = CreateBufferResource(device.Get(), intermediateSize);
-	UpdateSubresources(commandList.Get(), texture.Get(), intermediateResource, 0, 0, UINT(subresources.size()), subresources.data());
+	Microsoft::WRL::ComPtr<ID3D12Resource> intermediateResource = CreateBufferResource(device.Get(), intermediateSize);
+	UpdateSubresources(commandList.Get(), texture.Get(), intermediateResource.Get(), 0, 0, UINT(subresources.size()), subresources.data());
 
 	// Tetureへの転送後は利用できるよう、D3D12_RESOURCE_STATE_COPY_DESTからD3D12_RESOURCE_STATE_GENERIC_READへResourceStateを変更する
 	D3D12_RESOURCE_BARRIER barrier{};
@@ -231,12 +217,10 @@ Microsoft::WRL::ComPtr<ID3D12Resource> CreateTextureResource(const Microsoft::WR
 	----------------------------------------*/
 	D3D12_HEAP_PROPERTIES heapProperties{};
 	heapProperties.Type = D3D12_HEAP_TYPE_DEFAULT; // 細かい設定を行う
-	//heapProperties.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY_WRITE_BACK; // CPUから直接書き込む
-	//heapProperties.MemoryPoolPreference = D3D12_MEMORY_POOL_L0; // CPUからのアクセスが速いメモリを使う
 
 	/* 3. リソースの生成
 	---------------------------------------*/
-	ID3D12Resource* resource = nullptr;
+	Microsoft::WRL::ComPtr<ID3D12Resource> resource = nullptr; // ComPtrで受け取る
 	HRESULT hr = device->CreateCommittedResource(
 		&heapProperties,					// ヒープ設定
 		D3D12_HEAP_FLAG_NONE,				// ヒープフラグ
@@ -271,9 +255,9 @@ void UploadTextureData(const Microsoft::WRL::ComPtr<ID3D12Resource>& texture, co
 }
 
 // DepthStencilTexture(奥行きの根幹をなすもの)
-ID3D12Resource* CreateDepthStancilTextureResourece(const Microsoft::WRL::ComPtr<ID3D12Device>& device, int32_t width, int32_t height) {
+Microsoft::WRL::ComPtr<ID3D12Resource> CreateDepthStancilTextureResourece(const Microsoft::WRL::ComPtr<ID3D12Device>& device, int32_t width, int32_t height) {
 	// 生成するResourceの設定
-	D3D12_RESOURCE_DESC resourceDesc{};
+	D3D12_RESOURCE_DESC resourceDesc{}; // ComPtrではなく通常の構造体にする
 	resourceDesc.Width = width;					// Textureの幅
 	resourceDesc.Height = height;				// Textureの高さ
 	resourceDesc.MipLevels = 1;					// ミップマップのレベル数
@@ -293,7 +277,7 @@ ID3D12Resource* CreateDepthStancilTextureResourece(const Microsoft::WRL::ComPtr<
 	depthClearValue.Format = DXGI_FORMAT_D24_UNORM_S8_UINT; // フォーマット
 
 	// リソースの生成
-	ID3D12Resource* resource = nullptr;
+	Microsoft::WRL::ComPtr<ID3D12Resource> resource = nullptr; // ComPtrで受け取る
 	HRESULT hr = device->CreateCommittedResource(
 		&heapProperties,					// ヒープ設定
 		D3D12_HEAP_FLAG_NONE,				// ヒープフラグ
@@ -1447,79 +1431,6 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	ImGui_ImplDX12_Shutdown();
 	ImGui_ImplWin32_Shutdown();
 	ImGui::DestroyContext();
-
-	// ==================================
-	// アプリが保持している D3D12 リソース類
-	// （PSO/RootSig/Resource/Heap の順でOK）
-	// ==================================
-
-	// DepthStencilリソース解放
-	//if (depthStencilResource) { depthStencilResource->Release(); depthStencilResource = nullptr; }
-
-	// PSO/RootSig/ShaderBlob解放
-	//if (graphicsPipelineState) { graphicsPipelineState->Release(); graphicsPipelineState = nullptr; }
-	//if (rootSignature) { rootSignature->Release(); rootSignature = nullptr; }
-	//if (signatureBlob) { signatureBlob->Release(); signatureBlob = nullptr; }
-	//if (errorBlob) { errorBlob->Release(); errorBlob = nullptr; }
-
-	//if (pixelShaderBlob) { pixelShaderBlob->Release(); pixelShaderBlob = nullptr; }
-	//if (vertexShaderBlob) { vertexShaderBlob->Release(); vertexShaderBlob = nullptr; }
-
-	// SwapChain バッファ（swapChain より先に解放）
-	//if (swapChainResources[0]) { swapChainResources[0]->Release(); swapChainResources[0] = nullptr; }
-	//if (swapChainResources[1]) { swapChainResources[1]->Release(); swapChainResources[1] = nullptr; }
-
-	// DescriptorHeap
-	/*if (rtvDescriptorHeap) { rtvDescriptorHeap->Release(); rtvDescriptorHeap = nullptr; }
-	if (srvDescriptorHeap) { srvDescriptorHeap->Release(); srvDescriptorHeap = nullptr; }
-	if (dsvDescriptorHeap) { dsvDescriptorHeap->Release(); dsvDescriptorHeap = nullptr; }*/
-
-	// ==================================
-	// コマンド系
-	// ==================================
-	/*if (commandList) { commandList->Release(); commandList = nullptr; }
-	if (commandAllocator) { commandAllocator->Release(); commandAllocator = nullptr; }*/
-	//if (commandQueue) { commandQueue->Release(); commandQueue = nullptr; }
-
-	// ==================================
-	// 同期系
-	// ==================================
-	//if (fenceEvent) { CloseHandle(fenceEvent); fenceEvent = nullptr; }
-	//if (fence) { fence->Release(); fence = nullptr; }
-
-	// ==================================
-	// DXC
-	// ==================================
-	//if (includeHandler) { includeHandler->Release(); includeHandler = nullptr; }
-	//if (dxcCompiler) { dxcCompiler->Release(); dxcCompiler = nullptr; }
-	//if (dxcUtils) { dxcUtils->Release(); dxcUtils = nullptr; }
-
-	// ==================================
-	// SwapChain / Device / DXGI
-	// ==================================
-
-	//if (useAdapter) { useAdapter->Release(); useAdapter = nullptr; }
-
-	/*if (device) { device->Release(); device = nullptr; }
-	if (useAdapter) { useAdapter->Release(); useAdapter = nullptr; }
-	if (dxgiFactory) { dxgiFactory->Release(); dxgiFactory = nullptr; }*/
-
-#ifdef _DEBUG
-	//if (debugController) { debugController->Release(); debugController = nullptr; }
-#endif
-
-	// ==================================
-	// リソースリークチェック
-	// ==================================
-#ifdef _DEBUG
-	/*IDXGIDebug1* debug = nullptr;
-	if (SUCCEEDED(DXGIGetDebugInterface1(0, IID_PPV_ARGS(&debug))) && debug) {
-		debug->ReportLiveObjects(DXGI_DEBUG_APP, DXGI_DEBUG_RLO_ALL);
-		debug->ReportLiveObjects(DXGI_DEBUG_D3D12, DXGI_DEBUG_RLO_ALL);
-		debug->Release();
-		debug = nullptr;
-	}*/
-#endif
 
 	return 0;
 }
