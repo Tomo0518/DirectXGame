@@ -5,6 +5,8 @@
 
 #include "TomoEngine.h"
 
+#include <numbers>
+
 #include<cassert>
 
 #include <vector>
@@ -307,6 +309,13 @@ ID3D12Resource* CreateDepthStancilTextureResourece(ID3D12Device* device, int32_t
 struct VertexData {
 	Vector4 position; // xyz:座標、w:1.0f
 	Vector2 texcoord;
+};
+
+// 球体を表す構造体
+struct Sphere {
+	Vector3 center; //!< 中心点
+	float radius;   //!< 半径
+	Vector3 rotation; //!< 回転角
 };
 
 // Windowsアプリでのエントリーポイント(main関数)
@@ -889,6 +898,94 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	// CPUで動かす用の行列を用意
 	Transform transformSprite{ {1.0f,1.0f,1.0f},{0.0f,0.0f,0.0f},{0.0f,0.0f,0.0f} };
 
+
+	// ==================================
+	// Sphere用のResourceの生成
+	// ==================================
+	// 分割数
+	const uint32_t kSubdivision = 16;
+	// 頂点数 (分割数 * 分割数 * 6頂点)
+	const uint32_t kSphereVertexCount = kSubdivision * kSubdivision * 6;
+
+	// 頂点リソースの作成
+	ID3D12Resource* vertexResourceSphere = CreateBufferResource(device, sizeof(VertexData) * kSphereVertexCount);
+
+	// 頂点バッファビューを作成する
+	D3D12_VERTEX_BUFFER_VIEW vertexBufferViewSphere = {};
+	vertexBufferViewSphere.BufferLocation = vertexResourceSphere->GetGPUVirtualAddress();
+	vertexBufferViewSphere.SizeInBytes = sizeof(VertexData) * kSphereVertexCount;
+	vertexBufferViewSphere.StrideInBytes = sizeof(VertexData);
+
+	// 頂点データを書き込む
+	VertexData* vertexDataSphere = nullptr;
+	vertexResourceSphere->Map(0, nullptr, reinterpret_cast<void**>(&vertexDataSphere));
+
+	// 経度分割1つ分の角度 phi
+	const float kLonEvery = 2.0f * std::numbers::pi_v<float> / float(kSubdivision);
+	// 緯度分割1つ分の角度 theta
+	const float kLatEvery = std::numbers::pi_v<float> / float(kSubdivision);
+
+	// 緯度の方向に分割
+	for (uint32_t latIndex = 0; latIndex < kSubdivision; ++latIndex) {
+		float lat = -std::numbers::pi_v<float> / 2.0f + kLatEvery * latIndex; // theta
+
+		// 経度の方向に分割
+		for (uint32_t lonIndex = 0; lonIndex < kSubdivision; ++lonIndex) {
+			float lon = lonIndex * kLonEvery; // phi
+
+			// 書き込む頂点の先頭インデックス
+			uint32_t start = (latIndex * kSubdivision + lonIndex) * 6;
+
+			// 基準点a, b, c, dの計算に必要な角度
+			float lat_b = lat + kLatEvery;
+			float lon_c = lon + kLonEvery;
+
+			// UV座標の計算用
+			float u_curr = float(lonIndex) / float(kSubdivision);
+			float u_next = float(lonIndex + 1) / float(kSubdivision);
+			float v_curr = 1.0f - float(latIndex) / float(kSubdivision);
+			float v_next = 1.0f - float(latIndex + 1) / float(kSubdivision);
+
+			// 頂点a (左下)
+			vertexDataSphere[start].position.x = std::cos(lat) * std::cos(lon);
+			vertexDataSphere[start].position.y = std::sin(lat);
+			vertexDataSphere[start].position.z = std::cos(lat) * std::sin(lon);
+			vertexDataSphere[start].position.w = 1.0f;
+			vertexDataSphere[start].texcoord = { u_curr, v_curr };
+
+			// 頂点b (左上)
+			vertexDataSphere[start + 1].position.x = std::cos(lat_b) * std::cos(lon);
+			vertexDataSphere[start + 1].position.y = std::sin(lat_b);
+			vertexDataSphere[start + 1].position.z = std::cos(lat_b) * std::sin(lon);
+			vertexDataSphere[start + 1].position.w = 1.0f;
+			vertexDataSphere[start + 1].texcoord = { u_curr, v_next };
+
+			// 頂点c (右下)
+			vertexDataSphere[start + 2].position.x = std::cos(lat) * std::cos(lon_c);
+			vertexDataSphere[start + 2].position.y = std::sin(lat);
+			vertexDataSphere[start + 2].position.z = std::cos(lat) * std::sin(lon_c);
+			vertexDataSphere[start + 2].position.w = 1.0f;
+			vertexDataSphere[start + 2].texcoord = { u_next, v_curr };
+
+			// 頂点d (右上) - 2枚目の三角形用
+			vertexDataSphere[start + 3] = vertexDataSphere[start + 1]; // b
+			vertexDataSphere[start + 4].position.x = std::cos(lat_b) * std::cos(lon_c);
+			vertexDataSphere[start + 4].position.y = std::sin(lat_b);
+			vertexDataSphere[start + 4].position.z = std::cos(lat_b) * std::sin(lon_c);
+			vertexDataSphere[start + 4].position.w = 1.0f;
+			vertexDataSphere[start + 4].texcoord = { u_next, v_next };
+			vertexDataSphere[start + 5] = vertexDataSphere[start + 2]; // c
+		}
+	}
+	// 書き込み終了
+	vertexResourceSphere->Unmap(0, nullptr);
+
+	// Sphere用のTransformationMatrix用のリソースを作る
+	ID3D12Resource* wvpResourceSphere = CreateBufferResource(device, sizeof(Matrix4x4));
+	Matrix4x4* wvpDataSphere = nullptr;
+	wvpResourceSphere->Map(0, nullptr, reinterpret_cast<void**>(&wvpDataSphere));
+	*wvpDataSphere = Matrix4x4::MakeIdentity4x4();
+
 	// ==================================
 	// DepthStencil用のResourceの生成
 	// ==================================
@@ -996,6 +1093,12 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		0.1f, // ニアクリップ距離
 		100.0f // ファークリップ距離
 	);
+
+	// Sphereの初期化
+	Sphere sphere;
+	sphere.center = { 0.0f, 0.0f, 0.0f };
+	sphere.radius = 0.5f;
+	sphere.rotation = { 0.0f, 0.0f, 0.0f };
 
 	Matrix4x4 worldViewProjectionMatrix = Matrix4x4::Multiply(worldMatrix, Matrix4x4::Multiply(viewMatrix, projectionMatrix));
 	transformationMatrixData = &worldViewProjectionMatrix;
@@ -1108,6 +1211,13 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 			ImGui::DragFloat3("SpritePos", &transformSprite.translate.x, 1.0f);
 			ImGui::End();
 
+			// Sphereの操作UI
+			ImGui::Begin("Sphere Control");
+			ImGui::DragFloat3("Center", &sphere.center.x, 0.01f);
+			ImGui::DragFloat("Radius", &sphere.radius, 0.01f);
+			ImGui::DragFloat3("Rotation", &sphere.rotation.x, 0.1f);
+			ImGui::End();
+
 			// 開発用UIの処理
 			//ImGui::ShowDemoWindow();
 
@@ -1147,6 +1257,23 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
 			*transformationMatrixDataSprite = worldViewProjectionMatrixSprite;
 
+			// =======================================
+			// Sphereの更新
+			// =======================================
+			sphere.rotation.y += 0.02f;
+
+			// 半径をスケール、中心を平行移動としてワールド行列を作成
+			Matrix4x4 worldMatrixSphere = MakeAffineMatrix(
+				{ sphere.radius, sphere.radius, sphere.radius }, // Scale
+				{ sphere.rotation.x,sphere.rotation.y, sphere.rotation.z }, // Rotate
+				sphere.center                                    // Translate
+			);
+			// WVP行列を計算してリソースに書き込む
+			Matrix4x4 worldViewProjectionMatrixSphere = Matrix4x4::Multiply(
+				worldMatrixSphere, Matrix4x4::Multiply(viewMatrix, projectionMatrix));
+			*wvpDataSphere = worldViewProjectionMatrixSphere;
+
+
 			// =======================================================
 			// コマンドを積む(描画に必要な情報を使って)
 			// =======================================================
@@ -1185,6 +1312,14 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 			commandList->SetGraphicsRootConstantBufferView(1, transformationMatrixResourceSprite->GetGPUVirtualAddress());
 			// 描画コマンド
 			commandList->DrawInstanced(6, 1, 0, 0); // 頂点3つで1つの図形を描画
+
+			// === Sphere描画 ===
+			// 頂点バッファをセット
+			commandList->IASetVertexBuffers(0, 1, &vertexBufferViewSphere);
+			// WVP用のCBufferの場所を設定 (Sphere用の行列リソースを指定)
+			commandList->SetGraphicsRootConstantBufferView(1, wvpResourceSphere->GetGPUVirtualAddress());
+			// 描画コマンド (頂点数分を描画)
+			commandList->DrawInstanced(kSphereVertexCount, 1, 0, 0);
 
 			// ==================================
 			// ImGuiの描画
@@ -1262,6 +1397,10 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	// Sprite用のリソース解放
 	if (transformationMatrixResourceSprite) { transformationMatrixResourceSprite->Release(); transformationMatrixResourceSprite = nullptr; }
 	if (vertexResourceSprite) { vertexResourceSprite->Release(); vertexResourceSprite = nullptr; }
+
+	// Sphere用のリソース解放
+	if (wvpResourceSphere) { wvpResourceSphere->Release(); wvpResourceSphere = nullptr; }
+	if (vertexResourceSphere) { vertexResourceSphere->Release(); vertexResourceSphere = nullptr; }
 
 	// テクスチャリソース解放
 	if (textureResource) { textureResource->Release(); textureResource = nullptr; }
