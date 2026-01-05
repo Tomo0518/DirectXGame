@@ -912,6 +912,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	assert(SUCCEEDED(hr));
 
 
+
 	// ==================================
 	// 平行光源用リソースの生成
 	// ==================================
@@ -1062,18 +1063,6 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	wvpDataSphere->WVP = Matrix4x4::MakeIdentity4x4();
 	wvpDataSphere->World = Matrix4x4::MakeIdentity4x4();
 
-
-	// ==================================
-	// ライトのリソース生成
-	// ==================================
-	//Microsoft::WRL::ComPtr<ID3D12Resource> directionalLightResource = CreateBufferResource(device, sizeof(DirectionalLight));
-	//DirectionalLight* directionalLightData = nullptr;
-	//directionalLightResource->Map(0, nullptr, reinterpret_cast<void**>(&directionalLightData));
-	//// ライトの色を白に
-	//directionalLightData->color = { 1.0f,1.0f,1.0f,1.0f };
-	//// ライトの向きを斜め上からに設定
-	//directionalLightData->direction = Vector3::Normalize({ 1.0f,-1.0f,-1.0f });
-
 	// ==================================
 	// DepthStencil用のResourceの生成
 	// ==================================
@@ -1100,6 +1089,8 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	materialData->color = { 1.0f,0.0f,0.0f,1.0f };
 	materialData->enableLighting = true;
 
+
+
 	// ==================================
 	// Material用のResourceの生成
 	// ==================================
@@ -1110,6 +1101,30 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	// 赤色に設定
 	materialDataSprite->color = { 1.0f,1.0f,1.0f,1.0f };
 	materialDataSprite->enableLighting = false;
+
+	// indexResourceの生成
+	// ----------------------------------
+	ResourceObject indexResource = CreateBufferResource(device, sizeof(uint32_t) * 6); // 32bit*6個分
+
+	// Viewを作成する
+	D3D12_INDEX_BUFFER_VIEW indexBufferViewSprite = {};
+
+	// リソースの先頭のアドレスから使う
+	indexBufferViewSprite.BufferLocation = indexResource.Get()->GetGPUVirtualAddress();
+	// 使用するリソースのサイズは32bit*6個分
+	indexBufferViewSprite.SizeInBytes = sizeof(uint32_t) * 6;
+	// 1頂点あたりのサイズ
+	indexBufferViewSprite.Format = DXGI_FORMAT_R32_UINT;
+
+	// インデックスデータを設定する
+	uint32_t* indexDataSprite = nullptr;
+	indexResource.Get()->Map(0, nullptr, reinterpret_cast<void**>(&indexDataSprite));
+	indexDataSprite[0] = 0;
+	indexDataSprite[1] = 1;
+	indexDataSprite[2] = 2;
+	indexDataSprite[3] = 3;
+	indexDataSprite[4] = 4;
+	indexDataSprite[5] = 5;
 
 	// ==================================
 	// VertexBufferViewを作成する
@@ -1266,11 +1281,9 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	device->CreateShaderResourceView(textureResource2.Get(), &srvDesc2, textureSrvHandleCPU2);
 
 	// ======================================
-	// ゲーム内の変数の初期化、宣言	
+	// ゲーム内の変数の初期化、宣言
 	// ======================================
 	bool useMonsterBall = true;
-
-
 
 	// ============================================
 	// ゲームループ
@@ -1483,6 +1496,8 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 			// ==================================
 			// Sprite描画
 			// =================================
+			commandList->IASetIndexBuffer(&indexBufferViewSprite);
+
 			commandList->SetGraphicsRootDescriptorTable(2, textureSrvHandleGPU); // SpriteはUvCheckerを使う
 
 			// ライト用CBufferの場所を再設定（同じ値でOK）
@@ -1501,7 +1516,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 			);
 
 			// 描画コマンド
-			commandList->DrawInstanced(6, 1, 0, 0);
+			commandList->DrawIndexedInstanced(6, 1, 0, 0, 0);
 
 			// ==================================
 			// ImGuiの描画
