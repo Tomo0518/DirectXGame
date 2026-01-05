@@ -760,13 +760,12 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	descriptionRootSignature.NumParameters = _countof(rootParameters); // ルートパラメータの配列の長さ
 
 	//WVP用のリソースを作る
-	ResourceObject wvpResource = CreateBufferResource(device, Align256(sizeof(Matrix4x4)));
+	ResourceObject wvpResource = CreateBufferResource(device, Align256(sizeof(TransformationMatrix)));
 	// データを書き込む
-	Matrix4x4* wvpData = nullptr;
-	// 書き込むためのアドレスを取得
+	TransformationMatrix* wvpData = nullptr;
 	wvpResource.Get()->Map(0, nullptr, reinterpret_cast<void**>(&wvpData));
-	// 単位行列を書き込む
-	*wvpData = Matrix4x4::MakeIdentity4x4();
+	wvpData->WVP = Matrix4x4::MakeIdentity4x4();
+	wvpData->World = Matrix4x4::MakeIdentity4x4();
 
 	// シリアライズしてバイナリにする
 	Microsoft::WRL::ComPtr<ID3DBlob> signatureBlob = nullptr;
@@ -1057,10 +1056,11 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	vertexResourceSphere.Get()->Unmap(0, nullptr);
 
 	// Sphere用のTransformationMatrix用のリソースを作る
-	ResourceObject wvpResourceSphere = CreateBufferResource(device, Align256(sizeof(Matrix4x4)));
-	Matrix4x4* wvpDataSphere = nullptr;
+	ResourceObject wvpResourceSphere = CreateBufferResource(device, Align256(sizeof(TransformationMatrix)));
+	TransformationMatrix* wvpDataSphere = nullptr;
 	wvpResourceSphere.Get()->Map(0, nullptr, reinterpret_cast<void**>(&wvpDataSphere));
-	*wvpDataSphere = Matrix4x4::MakeIdentity4x4();
+	wvpDataSphere->WVP = Matrix4x4::MakeIdentity4x4();
+	wvpDataSphere->World = Matrix4x4::MakeIdentity4x4();
 
 
 	// ==================================
@@ -1341,7 +1341,8 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 				transform.translate
 			);
 
-			*wvpData = Matrix4x4::Multiply(
+			wvpData->World = worldMatrix;
+			wvpData->WVP = Matrix4x4::Multiply(
 				Matrix4x4::Multiply(worldMatrix, viewMatrix),
 				projectionMatrix);
 
@@ -1363,10 +1364,20 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
 			ImGui::End();
 
+			// 光源の調整
+			ImGui::Begin("Light Control");
+			ImGui::ColorEdit4("Light Color", &directionalLightData->color.x);
+			ImGui::DragFloat3("Light Direction", &directionalLightData->direction.x, 0.1f);
+			ImGui::DragFloat("Light Intensity", &directionalLightData->intensity, 0.1f, 0.0f, 10.0f);
+			ImGui::End();
+
 			// 開発用UIの処理
 			//ImGui::ShowDemoWindow();
 
 			ImGui::Render();
+
+			// directionalLightData のdirectonを正規化して書き戻す
+			directionalLightData->direction = Vector3::Normalize(directionalLightData->direction);
 
 			materialData->color.x = materialColor[0];
 			materialData->color.y = materialColor[1];
@@ -1413,11 +1424,13 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 				{ sphere.rotation.x,sphere.rotation.y, sphere.rotation.z }, // Rotate
 				sphere.center                                    // Translate
 			);
-			// WVP行列を計算してリソースに書き込む
-			Matrix4x4 worldViewProjectionMatrixSphere = Matrix4x4::Multiply(
-				worldMatrixSphere, Matrix4x4::Multiply(viewMatrix, projectionMatrix));
-			*wvpDataSphere = worldViewProjectionMatrixSphere;
 
+			// Sphere: World / WVP を両方更新
+			wvpDataSphere->World = worldMatrixSphere;
+			wvpDataSphere->WVP = Matrix4x4::Multiply(
+				Matrix4x4::Multiply(worldMatrixSphere, viewMatrix),
+				projectionMatrix
+			);
 
 			// =======================================================
 			// コマンドを積む(描画に必要な情報を使って)
@@ -1455,7 +1468,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 			commandList->SetGraphicsRootDescriptorTable(2, useMonsterBall ? textureSrvHandleGPU2 : textureSrvHandleGPU);
 
 			// 描画コマンド (DrawCall/ドローコール)3頂点で1つの図形を描画
-			commandList->DrawInstanced(6, 1, 0, 0); // 頂点3つで1つの図形を描画
+			//commandList->DrawInstanced(6, 1, 0, 0); // 頂点3つで1つの図形を描画
 
 			// ==================================
 			// Sphere描画
