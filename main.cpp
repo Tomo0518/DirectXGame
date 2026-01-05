@@ -11,6 +11,11 @@
 
 #include "wrl.h"
 
+struct Material {
+	Vector4 color; // RGBA
+	int enableLighting; // ライティングを有効にするか
+};
+
 Microsoft::WRL::ComPtr<ID3D12Resource> CreateBufferResource(const Microsoft::WRL::ComPtr<ID3D12Device>& device, size_t sizeInBytes) {
 	assert(device != nullptr);
 
@@ -1039,11 +1044,24 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	// ==================================
 	// Material用のResourceの生成
 	// ==================================
-	ResourceObject materialResource = CreateBufferResource(device, sizeof(Vector4)); // RGBA分のサイズ
-	Vector4* materialData = nullptr;
+	ResourceObject materialResource = CreateBufferResource(device, sizeof(Material)); // RGBA分のサイズ
+	//Vector4* materialData = nullptr;
+	Material* materialData = nullptr;
 	materialResource.Get()->Map(0, nullptr, reinterpret_cast<void**>(&materialData));
 	// 赤色に設定
-	*materialData = { 1.0f,0.0f,0.0f,1.0f };
+	materialData->color = { 1.0f,0.0f,0.0f,1.0f };
+	materialData->enableLighting = true;
+
+	// ==================================
+	// Material用のResourceの生成
+	// ==================================
+	ResourceObject materialResourceSprite = CreateBufferResource(device, sizeof(Material)); // RGBA分のサイズ
+	//Vector4* materialData = nullptr;
+	Material* materialDataSprite = nullptr;
+	materialResourceSprite.Get()->Map(0, nullptr, reinterpret_cast<void**>(&materialDataSprite));
+	// 赤色に設定
+	materialDataSprite->color = { 1.0f,1.0f,1.0f,1.0f };
+	materialDataSprite->enableLighting = false;
 
 	// ==================================
 	// VertexBufferViewを作成する
@@ -1303,10 +1321,10 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
 			ImGui::Render();
 
-			materialData->x = materialColor[0];
-			materialData->y = materialColor[1];
-			materialData->z = materialColor[2];
-			materialData->w = materialColor[3];
+			materialData->color.x = materialColor[0];
+			materialData->color.y = materialColor[1];
+			materialData->color.z = materialColor[2];
+			materialData->color.w = materialColor[3];
 
 			// 描画先のRTVを指定
 			/*commandList->OMSetRenderTargets(1, &rtvHandles[backBufferIndex], false, &dsvHandle);*/
@@ -1404,6 +1422,12 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 			commandList->IASetVertexBuffers(0, 1, &vertexBufferViewSprite);
 			// WVP用のCBufferの場所を設定
 			commandList->SetGraphicsRootConstantBufferView(1, transformationMatrixResourceSprite.Get()->GetGPUVirtualAddress());
+
+			commandList->SetGraphicsRootConstantBufferView(
+				0, // ルートパラメータのインデックス
+				materialResourceSprite.Get()->GetGPUVirtualAddress() // CBV用リソースのアドレス
+			);
+
 			// 描画コマンド
 			commandList->DrawInstanced(6, 1, 0, 0); // 頂点3つで1つの図形を描画
 
