@@ -16,6 +16,17 @@ struct Material {
 	int enableLighting; // ライティングを有効にするか
 };
 
+struct TransformationMatrix {
+	Matrix4x4 WVP; // ワールド×ビュー×プロジェクション行列
+	Matrix4x4 World; // ワールド行列
+};
+
+struct DirectionalLight {
+	Vector4 color;    // ライトの色
+	Vector3 direction; // ライトの向き（単位ベクトル）
+	float intensity;  // ライトの強度
+};
+
 Microsoft::WRL::ComPtr<ID3D12Resource> CreateBufferResource(const Microsoft::WRL::ComPtr<ID3D12Device>& device, size_t sizeInBytes) {
 	assert(device != nullptr);
 
@@ -720,7 +731,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	// =================================
 	// RootParameter作成
 	// =================================
-	D3D12_ROOT_PARAMETER rootParameters[3] = {};
+	D3D12_ROOT_PARAMETER rootParameters[4] = {};
 	rootParameters[0].ParameterType = D3D12_ROOT_PARAMETER_TYPE_CBV; // 定数バッファビュー　// b0のbと一致する
 	rootParameters[0].ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL; // ピクセルシェーダーで使う
 	rootParameters[0].Descriptor.ShaderRegister = 0; // レジスタ番号0 // b0の0と一致する　もしb11と紐づけたいなら11にする
@@ -733,6 +744,10 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	rootParameters[2].ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL; // ピクセルシェーダーで使う
 	rootParameters[2].DescriptorTable.pDescriptorRanges = descriptorRange;	// Tableの中身の配列を指定
 	rootParameters[2].DescriptorTable.NumDescriptorRanges = _countof(descriptorRange); // 配列の長さ
+
+	rootParameters[3].ParameterType = D3D12_ROOT_PARAMETER_TYPE_CBV; // CBVを使用
+	rootParameters[3].ShaderVisibility = D3D12_SHADER_VISIBILITY_VERTEX; // 頂点シェーダーで使う
+	rootParameters[3].Descriptor.ShaderRegister = 1; // レジスタ番号1
 
 
 	descriptionRootSignature.pParameters = rootParameters; // ルートパラメータ配列へのポインタ
@@ -1025,6 +1040,18 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	Matrix4x4* wvpDataSphere = nullptr;
 	wvpResourceSphere.Get()->Map(0, nullptr, reinterpret_cast<void**>(&wvpDataSphere));
 	*wvpDataSphere = Matrix4x4::MakeIdentity4x4();
+
+
+	// ==================================
+	// ライトのリソース生成
+	// ==================================
+	Microsoft::WRL::ComPtr<ID3D12Resource> directionalLightResource = CreateBufferResource(device, sizeof(DirectionalLight));
+	DirectionalLight* directionalLightData = nullptr;
+	directionalLightResource->Map(0, nullptr, reinterpret_cast<void**>(&directionalLightData));
+	// ライトの色を白に
+	directionalLightData->color = { 1.0f,1.0f,1.0f,1.0f};
+	// ライトの向きを斜め上からに設定
+	directionalLightData->direction = Vector3::Normalize({ 1.0f,-1.0f,-1.0f });
 
 	// ==================================
 	// DepthStencil用のResourceの生成
