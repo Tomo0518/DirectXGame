@@ -6,16 +6,7 @@ struct TransfomationMartrix
     float4x4 World;
 };
 
-struct DirectionalLight
-{
-    float4 color; //!< ライトの色
-    float3 direction; //!< ライトの向き（単位ベクトル）
-    float intensity; //!< ライトの強さ
-    
-};
-
 ConstantBuffer<TransfomationMartrix> gTransformationMatrix : register(b0);
-
 
 struct VertexShaderInput
 {

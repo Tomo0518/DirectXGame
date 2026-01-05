@@ -14,6 +14,7 @@
 struct Material {
 	Vector4 color; // RGBA
 	int enableLighting; // ライティングを有効にするか
+	float padding[3]; // 12 bytes (16-byte alignment)
 };
 
 struct TransformationMatrix {
@@ -25,6 +26,7 @@ struct DirectionalLight {
 	Vector4 color;    // ライトの色
 	Vector3 direction; // ライトの向き（単位ベクトル）
 	float intensity;  // ライトの強度
+	float padding[3];  // 12 bytes (16-byte境界合わせ)
 };
 
 Microsoft::WRL::ComPtr<ID3D12Resource> CreateBufferResource(const Microsoft::WRL::ComPtr<ID3D12Device>& device, size_t sizeInBytes) {
@@ -355,6 +357,10 @@ struct D3DResourceLeakChecker {
 	}
 };
 
+static size_t Align256(size_t size) {
+	return (size + 255) & ~size_t(255);
+}
+
 // Windowsアプリでのエントリーポイント(main関数)
 int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
@@ -665,7 +671,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	// 二枚目のTextureを読んで転送する（Copy命令をコマンドに積む→実行→完了待ち）
 	DirectX::ScratchImage mipImages2 = LoadTexture("resources/monsterBall.png");
 	const DirectX::TexMetadata& metadata2 = mipImages2.GetMetadata();
-	
+
 	Microsoft::WRL::ComPtr<ID3D12Resource> textureResource2 = CreateTextureResource(device, metadata2);
 
 	// テクスチャ転送コマンドを積むために、コマンドリストを開く
@@ -684,7 +690,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	hr = commandList->Close();
 	assert(SUCCEEDED(hr));
 
-	ID3D12CommandList* commandLists[] = { commandList.Get()};
+	ID3D12CommandList* commandLists[] = { commandList.Get() };
 	commandQueue->ExecuteCommandLists(1, commandLists);
 
 	// 実行完了を待つ（ここで GPU がコピーを終える）
@@ -746,7 +752,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	rootParameters[2].DescriptorTable.NumDescriptorRanges = _countof(descriptorRange); // 配列の長さ
 
 	rootParameters[3].ParameterType = D3D12_ROOT_PARAMETER_TYPE_CBV; // CBVを使用
-	rootParameters[3].ShaderVisibility = D3D12_SHADER_VISIBILITY_VERTEX; // 頂点シェーダーで使う
+	rootParameters[3].ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL; // 頂点シェーダーで使う
 	rootParameters[3].Descriptor.ShaderRegister = 1; // レジスタ番号1
 
 
@@ -754,7 +760,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	descriptionRootSignature.NumParameters = _countof(rootParameters); // ルートパラメータの配列の長さ
 
 	//WVP用のリソースを作る
-	ResourceObject wvpResource = CreateBufferResource(device, sizeof(Matrix4x4));
+	ResourceObject wvpResource = CreateBufferResource(device, Align256(sizeof(Matrix4x4)));
 	// データを書き込む
 	Matrix4x4* wvpData = nullptr;
 	// 書き込むためのアドレスを取得
@@ -787,6 +793,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		IID_PPV_ARGS(&rootSignature)
 	);
 	assert(SUCCEEDED(hr));
+
 
 	// ==================================
 	// InputLayoutの設定
@@ -868,6 +875,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	// 利用するトポロジ(形状)のタイプ。三角形
 	graphicsPipelineStateDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
 	graphicsPipelineStateDesc.SampleDesc.Count = 1; 	// どのように画面に色を打ち込むのかの設定
+	graphicsPipelineStateDesc.SampleDesc.Quality = 0;
 	graphicsPipelineStateDesc.SampleMask = D3D12_DEFAULT_SAMPLE_MASK;
 
 	// 実際に生成
@@ -904,6 +912,20 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	);
 	assert(SUCCEEDED(hr));
 
+
+	// ==================================
+	// 平行光源用リソースの生成
+	// ==================================
+	Microsoft::WRL::ComPtr<ID3D12Resource> directionalLightResource = CreateBufferResource(device, Align256(sizeof(DirectionalLight)));
+	// データを書き込む
+	DirectionalLight* directionalLightData = nullptr;
+	// 書き込むためのアドレスを取得
+	directionalLightResource->Map(0, nullptr, reinterpret_cast<void**>(&directionalLightData));
+	// 平行光源の情報を設定
+	directionalLightData->color = Vector4(1.0f, 1.0f, 1.0f, 1.0f); // 白色
+	directionalLightData->direction = Vector3(0.0f, -1.0f, 0.0f);
+	directionalLightData->intensity = 1.0f;
+
 	// ==================================
 	// Sprite用のResourceの生成
 	// ==================================
@@ -939,8 +961,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
 	// Sprite用のTransformationMatrix用のリソースを作る
 	//ID3D12Resource* transformationMatrixResourceSprite = CreateBufferResource(device.Get(), sizeof(Matrix4x4));
-	ResourceObject transformationMatrixResourceSprite = CreateBufferResource(device, sizeof(Matrix4x4));
-	// データを書き込む
+	ResourceObject transformationMatrixResourceSprite = CreateBufferResource(device, Align256(sizeof(Matrix4x4)));
 	Matrix4x4* transformationMatrixDataSprite = nullptr;
 	// 書き込むためのアドレスを取得
 	transformationMatrixResourceSprite.Get()->Map(0, nullptr, reinterpret_cast<void**>(&transformationMatrixDataSprite));
@@ -1036,7 +1057,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	vertexResourceSphere.Get()->Unmap(0, nullptr);
 
 	// Sphere用のTransformationMatrix用のリソースを作る
-	ResourceObject wvpResourceSphere = CreateBufferResource(device, sizeof(Matrix4x4));
+	ResourceObject wvpResourceSphere = CreateBufferResource(device, Align256(sizeof(Matrix4x4)));
 	Matrix4x4* wvpDataSphere = nullptr;
 	wvpResourceSphere.Get()->Map(0, nullptr, reinterpret_cast<void**>(&wvpDataSphere));
 	*wvpDataSphere = Matrix4x4::MakeIdentity4x4();
@@ -1045,13 +1066,13 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	// ==================================
 	// ライトのリソース生成
 	// ==================================
-	Microsoft::WRL::ComPtr<ID3D12Resource> directionalLightResource = CreateBufferResource(device, sizeof(DirectionalLight));
-	DirectionalLight* directionalLightData = nullptr;
-	directionalLightResource->Map(0, nullptr, reinterpret_cast<void**>(&directionalLightData));
-	// ライトの色を白に
-	directionalLightData->color = { 1.0f,1.0f,1.0f,1.0f};
-	// ライトの向きを斜め上からに設定
-	directionalLightData->direction = Vector3::Normalize({ 1.0f,-1.0f,-1.0f });
+	//Microsoft::WRL::ComPtr<ID3D12Resource> directionalLightResource = CreateBufferResource(device, sizeof(DirectionalLight));
+	//DirectionalLight* directionalLightData = nullptr;
+	//directionalLightResource->Map(0, nullptr, reinterpret_cast<void**>(&directionalLightData));
+	//// ライトの色を白に
+	//directionalLightData->color = { 1.0f,1.0f,1.0f,1.0f };
+	//// ライトの向きを斜め上からに設定
+	//directionalLightData->direction = Vector3::Normalize({ 1.0f,-1.0f,-1.0f });
 
 	// ==================================
 	// DepthStencil用のResourceの生成
@@ -1071,7 +1092,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	// ==================================
 	// Material用のResourceの生成
 	// ==================================
-	ResourceObject materialResource = CreateBufferResource(device, sizeof(Material)); // RGBA分のサイズ
+	ResourceObject materialResource = CreateBufferResource(device, Align256(sizeof(Material))); // RGBA分のサイズ
 	//Vector4* materialData = nullptr;
 	Material* materialData = nullptr;
 	materialResource.Get()->Map(0, nullptr, reinterpret_cast<void**>(&materialData));
@@ -1082,7 +1103,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	// ==================================
 	// Material用のResourceの生成
 	// ==================================
-	ResourceObject materialResourceSprite = CreateBufferResource(device, sizeof(Material)); // RGBA分のサイズ
+	ResourceObject materialResourceSprite = CreateBufferResource(device, Align256(sizeof(Material))); // RGBA分のサイズ
 	//Vector4* materialData = nullptr;
 	Material* materialDataSprite = nullptr;
 	materialResourceSprite.Get()->Map(0, nullptr, reinterpret_cast<void**>(&materialDataSprite));
@@ -1269,7 +1290,6 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 			ImGui_ImplWin32_NewFrame();
 			ImGui::NewFrame();
 
-			
 
 			// ==================================
 			// 画面をクリアする処理が含まれたコマンドリストの記録
@@ -1410,7 +1430,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 			commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
 			// まず DescriptorHeap をバインドする（CBV/SRV/UAV 用）
-			ID3D12DescriptorHeap* descriptorHeaps[] = { srvDescriptorHeap.Get()};
+			ID3D12DescriptorHeap* descriptorHeaps[] = { srvDescriptorHeap.Get() };
 			commandList->SetDescriptorHeaps(1, descriptorHeaps);
 
 			// ==================================
@@ -1424,6 +1444,12 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
 			// WVP用のCBufferの場所を設定
 			commandList->SetGraphicsRootConstantBufferView(1, wvpResource.Get()->GetGPUVirtualAddress());
+
+			// ライト用CBufferの場所を設定
+			commandList->SetGraphicsRootConstantBufferView(
+				3,
+				directionalLightResource.Get()->GetGPUVirtualAddress()
+			);
 
 			// SRVのDescriptorTableの先頭を設定。2はrootParameters[2]で設定しているので2になる
 			commandList->SetGraphicsRootDescriptorTable(2, useMonsterBall ? textureSrvHandleGPU2 : textureSrvHandleGPU);
@@ -1446,6 +1472,12 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 			// =================================
 			commandList->SetGraphicsRootDescriptorTable(2, textureSrvHandleGPU); // SpriteはUvCheckerを使う
 
+			// ライト用CBufferの場所を再設定（同じ値でOK）
+			commandList->SetGraphicsRootConstantBufferView(
+				3,
+				directionalLightResource.Get()->GetGPUVirtualAddress()
+			);
+
 			commandList->IASetVertexBuffers(0, 1, &vertexBufferViewSprite);
 			// WVP用のCBufferの場所を設定
 			commandList->SetGraphicsRootConstantBufferView(1, transformationMatrixResourceSprite.Get()->GetGPUVirtualAddress());
@@ -1456,7 +1488,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 			);
 
 			// 描画コマンド
-			commandList->DrawInstanced(6, 1, 0, 0); // 頂点3つで1つの図形を描画
+			commandList->DrawInstanced(6, 1, 0, 0);
 
 			// ==================================
 			// ImGuiの描画
@@ -1480,7 +1512,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 			// GUIにキックする
 			// ==================================
 			// GUIにコマンドリストの実行を行わせる
-			ID3D12CommandList* commandlLists[] = { commandList.Get()};
+			ID3D12CommandList* commandlLists[] = { commandList.Get() };
 			commandQueue->ExecuteCommandLists(1, commandlLists);
 
 			// GPUとOSに画面の交換を行うように通知する
