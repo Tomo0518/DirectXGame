@@ -983,6 +983,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 			vertexDataSphere[start].position.z = std::cos(lat) * std::sin(lon);
 			vertexDataSphere[start].position.w = 1.0f;
 			vertexDataSphere[start].texcoord = { u_curr, v_curr };
+			vertexDataSphere[start].normal = { vertexDataSphere[start].position.x, vertexDataSphere[start].position.y, vertexDataSphere[start].position.z };
 
 			// 頂点b (左上)
 			vertexDataSphere[start + 1].position.x = std::cos(lat_b) * std::cos(lon);
@@ -990,6 +991,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 			vertexDataSphere[start + 1].position.z = std::cos(lat_b) * std::sin(lon);
 			vertexDataSphere[start + 1].position.w = 1.0f;
 			vertexDataSphere[start + 1].texcoord = { u_curr, v_next };
+			vertexDataSphere[start + 1].normal = { vertexDataSphere[start + 1].position.x, vertexDataSphere[start + 1].position.y, vertexDataSphere[start + 1].position.z };
 
 			// 頂点c (右下)
 			vertexDataSphere[start + 2].position.x = std::cos(lat) * std::cos(lon_c);
@@ -997,6 +999,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 			vertexDataSphere[start + 2].position.z = std::cos(lat) * std::sin(lon_c);
 			vertexDataSphere[start + 2].position.w = 1.0f;
 			vertexDataSphere[start + 2].texcoord = { u_next, v_curr };
+			vertexDataSphere[start + 2].normal = { vertexDataSphere[start + 2].position.x, vertexDataSphere[start + 2].position.y, vertexDataSphere[start + 2].position.z };
 
 			// 頂点d (右上) - 2枚目の三角形用
 			vertexDataSphere[start + 3] = vertexDataSphere[start + 1]; // b
@@ -1005,6 +1008,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 			vertexDataSphere[start + 4].position.z = std::cos(lat_b) * std::sin(lon_c);
 			vertexDataSphere[start + 4].position.w = 1.0f;
 			vertexDataSphere[start + 4].texcoord = { u_next, v_next };
+			vertexDataSphere[start + 4].normal = { vertexDataSphere[start + 4].position.x, vertexDataSphere[start + 4].position.y, vertexDataSphere[start + 4].position.z };
 			vertexDataSphere[start + 5] = vertexDataSphere[start + 2]; // c
 		}
 	}
@@ -1064,24 +1068,30 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	// 左下
 	vertexData[0].position = { -0.5f,-0.5f,0.0f,1.0f };
 	vertexData[0].texcoord = { 0.0f,1.0f };
+	vertexData[0].normal = { 0.0f,0.0f,-1.0f };
 	// 上
 	vertexData[1].position = { 0.0f,0.5f,0.0f,1.0f };
 	vertexData[1].texcoord = { 0.5f,0.0f };
+	vertexData[1].normal = { 0.0f,0.0f,-1.0f };
 	// 右下
 	vertexData[2].position = { 0.5f,-0.5f,0.0f,1.0f };
 	vertexData[2].texcoord = { 1.0f,1.0f };
+	vertexData[2].normal = { 0.0f,0.0f,-1.0f };
 
 	// 左下2
 	vertexData[3].position = { -0.5f, -0.5f, 0.5f, 1.0f };
 	vertexData[3].texcoord = { 0.0f, 1.0f };
+	vertexData[3].normal = { 0.0f,0.0f,1.0f };
 
 	// 上2
 	vertexData[4].position = { 0.0f, 0.0f, 0.0f, 1.0f };
 	vertexData[4].texcoord = { 0.5f, 0.0f };
+	vertexData[4].normal = { 0.0f,0.0f,1.0f };
 
 	// 右下2
 	vertexData[5].position = { 0.5f, -0.5f, -0.5f, 1.0f };
 	vertexData[5].texcoord = { 1.0f, 1.0f };
+	vertexData[5].normal = { 0.0f,0.0f,1.0f };
 
 	// ==================================
 	// ViewportとScissor(シザー)
