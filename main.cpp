@@ -15,6 +15,7 @@ struct Material {
 	Vector4 color; // RGBA
 	int enableLighting; // ライティングを有効にするか
 	float padding[3]; // 12 bytes (16-byte alignment)
+	Matrix4x4 uvTransform; // UV変換行列
 };
 
 struct TransformationMatrix {
@@ -1088,6 +1089,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	// 赤色に設定
 	materialData->color = { 1.0f,0.0f,0.0f,1.0f };
 	materialData->enableLighting = true;
+	materialData->uvTransform = Matrix4x4::MakeIdentity4x4();
 
 
 
@@ -1101,6 +1103,14 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	// 赤色に設定
 	materialDataSprite->color = { 1.0f,1.0f,1.0f,1.0f };
 	materialDataSprite->enableLighting = false;
+	materialDataSprite->uvTransform = Matrix4x4::MakeIdentity4x4();
+
+	Transform uvTransformSprite{
+		{1.0f,1.0f,1.0f},
+		{0.0f,0.0f,0.0f},
+		{0.0f,0.0f,0.0f},
+	};
+
 
 	// indexResourceの生成
 	// ----------------------------------
@@ -1375,6 +1385,11 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 			ImGui::Separator();
 			ImGui::Checkbox("Use MonsterBall Texture", &useMonsterBall);
 
+			// UVのSRT
+			ImGui::DragFloat2("UVTranslate", &uvTransformSprite.translate.x,0.01f,-10.0f,10.0f);
+			ImGui::DragFloat2("UVScale", &uvTransformSprite.scale.x, 0.01f, -10.0f, 10.0f);
+			ImGui::SliderAngle("UVRotate", &uvTransformSprite.rotate.z);
+
 			ImGui::End();
 
 			// 光源の調整
@@ -1404,6 +1419,10 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 			float clearColor[] = { 0.1f,0.25f,0.5f,1.0f }; // 青っぽい色 RGBA
 			commandList->ClearRenderTargetView(rtvHandles[backBufferIndex], clearColor, 0, nullptr);
 
+			Matrix4x4 uvTransformMatrix = MakeScaleMatrix(uvTransformSprite.scale);
+			uvTransformMatrix = Matrix4x4::Multiply(uvTransformMatrix, MakeRotateZMatrix(uvTransformSprite.rotate.z));
+			uvTransformMatrix = Matrix4x4::Multiply(uvTransformMatrix, MakeTranslateMatrix(uvTransformSprite.translate));
+			materialDataSprite->uvTransform = uvTransformMatrix;
 
 			/* Spriteの更新 */
 			// 行列計算
