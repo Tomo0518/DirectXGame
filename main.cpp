@@ -333,12 +333,6 @@ D3D12_GPU_DESCRIPTOR_HANDLE GetGPUDescriptorHandle(
 	return handleGPU;
 }
 
-struct VertexData {
-	Vector4 position; // xyz:座標、w:1.0f
-	Vector2 texcoord; // uv座標
-	Vector3 normal;   // 法線ベクトル
-};
-
 // 球体を表す構造体
 struct Sphere {
 	Vector3 center; //!< 中心点

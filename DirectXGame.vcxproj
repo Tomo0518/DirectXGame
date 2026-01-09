@@ -92,9 +92,11 @@ if exist "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" copy /y "$(
     <ClCompile Include="externals\imgui\imgui_tables.cpp" />
     <ClCompile Include="externals\imgui\imgui_widgets.cpp" />
     <ClCompile Include="Game.cpp" />
+    <ClCompile Include="LoadObjFile.cpp" />
     <ClCompile Include="Logger.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Matrix4x4.cpp" />
+    <ClCompile Include="ModelData.cpp" />
     <ClCompile Include="RendererDX12.cpp" />
     <ClCompile Include="ResourceObject.cpp" />
     <ClCompile Include="TomoEngine.cpp" />
@@ -118,10 +120,12 @@ if exist "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" copy /y "$(
     <ClInclude Include="externals\imgui\imstb_truetype.h" />
     <ClInclude Include="Game.h" />
     <ClInclude Include="Game\Object\Player\Player.h" />
+    <ClInclude Include="LoadObjFile.h" />
     <ClInclude Include="LoadTexture.h" />
     <ClInclude Include="Logger.h" />
     <ClInclude Include="Math.h" />
     <ClInclude Include="Matrix4x4.h" />
+    <ClInclude Include="ModelData.h" />
     <ClInclude Include="RendererDX12.h" />
     <ClInclude Include="ResourceObject.h" />
     <ClInclude Include="ResourcesIncludes.h" />
@@ -131,6 +135,7 @@ if exist "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" copy /y "$(
     <ClInclude Include="Vector2.h" />
     <ClInclude Include="Vector3.h" />
     <ClInclude Include="Vector4.h" />
+    <ClInclude Include="VertexData.h" />
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="Object3d.PS.hlsl">

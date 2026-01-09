@@ -154,6 +154,18 @@
     <Filter Include="ソース ファイル\TomoEngine\Engine\RHI\D3D12\Resources\Shader">
       <UniqueIdentifier>{b5b554da-98d7-4966-9df9-18778841b23b}</UniqueIdentifier>
     </Filter>
+    <Filter Include="ソース ファイル\TomoEngine\Engine\Renderer\VertexData">
+      <UniqueIdentifier>{a90c5693-680f-4c2c-92ef-1ee35636d400}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ソース ファイル\TomoEngine\Engine\Core\Model">
+      <UniqueIdentifier>{c18040c1-1534-4f3d-a7b6-0f13ce6a4c4e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ソース ファイル\TomoEngine\Engine\Asset\Loder">
+      <UniqueIdentifier>{d15c73c1-7503-4b3c-8204-334186818645}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ソース ファイル\TomoEngine\Engine\Asset\Loder\LoadObjFile">
+      <UniqueIdentifier>{87517771-a577-4090-9e80-cb717928cddc}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -215,6 +227,12 @@
     </ClCompile>
     <ClCompile Include="DescriptorHeapHelper.cpp">
       <Filter>ソース ファイル\TomoEngine\Engine\RHI\D3D12\Device</Filter>
+    </ClCompile>
+    <ClCompile Include="ModelData.cpp">
+      <Filter>ソース ファイル\TomoEngine\Engine\Asset\Loder</Filter>
+    </ClCompile>
+    <ClCompile Include="LoadObjFile.cpp">
+      <Filter>ソース ファイル\TomoEngine\Engine\Asset\Loder\LoadObjFile</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -301,6 +319,15 @@
     </ClInclude>
     <ClInclude Include="DescriptorHeapHelper.h">
       <Filter>ソース ファイル\TomoEngine\Engine\RHI\D3D12\Device</Filter>
+    </ClInclude>
+    <ClInclude Include="VertexData.h">
+      <Filter>ソース ファイル\TomoEngine\Engine\Renderer\VertexData</Filter>
+    </ClInclude>
+    <ClInclude Include="ModelData.h">
+      <Filter>ソース ファイル\TomoEngine\Engine\Asset\Loder</Filter>
+    </ClInclude>
+    <ClInclude Include="LoadObjFile.h">
+      <Filter>ソース ファイル\TomoEngine\Engine\Asset\Loder\LoadObjFile</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
