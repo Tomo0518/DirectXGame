@@ -9,7 +9,11 @@
 #include<cassert>
 #include <vector>
 
+#include "InputManager.h"
+
 #include "wrl.h"
+
+inline InputManager& Input() { return *InputManager::GetInstance(); }
 
 struct Material {
 	Vector4 color; // RGBA
@@ -1323,6 +1327,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 			ImGui_ImplWin32_NewFrame();
 			ImGui::NewFrame();
 
+			Input().Update();
 
 			// ==================================
 			// 画面をクリアする処理が含まれたコマンドリストの記録
@@ -1368,6 +1373,20 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 			// ゲームの処理 ↓↓
 			//==================================
 			//transform.rotate.y += 0.03f;
+
+			if(Input().PushKey(VK_UP)) {
+				transform.translate.z += 0.1f;
+			}
+			else if (Input().PushKey(VK_DOWN)) {
+				transform.translate.z -= 0.1f;
+			}
+
+			if (Input().PushKey(VK_RIGHT)) {
+				transform.translate.x += 0.1f;
+			}
+			else if (Input().PushKey(VK_LEFT)) {
+				transform.translate.x -= 0.1f;
+			}
 
 			Matrix4x4 worldMatrix = MakeAffineMatrix(
 				transform.scale,
