@@ -14,16 +14,10 @@
 
 inline InputManager& Input() { return *InputManager::GetInstance(); }
 
-// 球体を表す構造体
-struct Sphere {
-	Vector3 center; //!< 中心点
-	float radius;   //!< 半径
-	Vector3 rotation; //!< 回転角
-};
-
 // Windowsアプリでのエントリーポイント(main関数)
 int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
+	// リソースリークチェッカー
 	D3DResourceLeakChecker leakChecker;
 
 	CoInitializeEx(0, COINIT_MULTITHREADED);

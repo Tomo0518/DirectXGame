@@ -202,6 +202,9 @@
     <Filter Include="ソース ファイル\TomoEngine\Engine\RHI\D3D12\Descriptor\DescriptorUtility">
       <UniqueIdentifier>{5934376c-1004-475f-9ceb-0884aa79992a}</UniqueIdentifier>
     </Filter>
+    <Filter Include="ソース ファイル\TomoEngine\Engine\Math\Geometry">
+      <UniqueIdentifier>{85f127cf-b308-4484-b7f6-cfc59d34ad74}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -433,6 +436,9 @@
     </ClInclude>
     <ClInclude Include="DescriptorUtility.h">
       <Filter>ソース ファイル\TomoEngine\Engine\RHI\D3D12\Descriptor\DescriptorUtility</Filter>
+    </ClInclude>
+    <ClInclude Include="Sphere.h">
+      <Filter>ソース ファイル\TomoEngine\Engine\Math\Geometry</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

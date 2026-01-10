@@ -150,6 +150,7 @@ if exist "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" copy /y "$(
     <ClInclude Include="ResourceObject.h" />
     <ClInclude Include="ResourcesIncludes.h" />
     <ClInclude Include="ResourcesUtility.h" />
+    <ClInclude Include="Sphere.h" />
     <ClInclude Include="TomoEngine.h" />
     <ClInclude Include="Transform.h" />
     <ClInclude Include="TransformationMatrix.h" />
