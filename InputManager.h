@@ -12,6 +12,17 @@ enum class MouseButton {
     Middle = 2,
 };
 
+/*
+キーの書き方(Win32 API)
+スペース	VK_SPACE
+エンター	VK_RETURN
+エスケープ　VK_ESCAPE
+左シフト	VK_LSHIFT
+Aキー	'A' または 0x41
+0キー	'0' または 0x30
+右矢印	VK_RIGHT
+*/
+
 // 入力システム全体を管理するクラス（シングルトン）
 class InputManager {
 public:

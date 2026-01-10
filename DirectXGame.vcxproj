@@ -92,6 +92,7 @@ if exist "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" copy /y "$(
     <ClCompile Include="externals\imgui\imgui_tables.cpp" />
     <ClCompile Include="externals\imgui\imgui_widgets.cpp" />
     <ClCompile Include="Game.cpp" />
+    <ClCompile Include="GraphicsCore.cpp" />
     <ClCompile Include="InputManager.cpp" />
     <ClCompile Include="LoadMaterialTemplateFile.cpp" />
     <ClCompile Include="LoadObjFile.cpp" />
@@ -106,12 +107,14 @@ if exist "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" copy /y "$(
     <ClCompile Include="Vector2.cpp" />
     <ClCompile Include="Vector3.cpp" />
     <ClCompile Include="Vector4.cpp" />
+    <ClCompile Include="Window.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Affine3D.h" />
     <ClInclude Include="ConvertString.h" />
     <ClInclude Include="Core.h" />
     <ClInclude Include="D3D12Includes.h" />
+    <ClInclude Include="D3DResourceLeakChecker.h" />
     <ClInclude Include="DescriptorHeapHelper.h" />
     <ClInclude Include="externals\imgui\imconfig.h" />
     <ClInclude Include="externals\imgui\imgui.h" />
@@ -123,6 +126,7 @@ if exist "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" copy /y "$(
     <ClInclude Include="externals\imgui\imstb_truetype.h" />
     <ClInclude Include="Game.h" />
     <ClInclude Include="Game\Object\Player\Player.h" />
+    <ClInclude Include="GraphicsCore.h" />
     <ClInclude Include="InputManager.h" />
     <ClInclude Include="LoadMaterialTemplateFile.h" />
     <ClInclude Include="LoadObjFile.h" />
@@ -143,6 +147,7 @@ if exist "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" copy /y "$(
     <ClInclude Include="Vector3.h" />
     <ClInclude Include="Vector4.h" />
     <ClInclude Include="VertexData.h" />
+    <ClInclude Include="Window.h" />
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="Object3d.PS.hlsl">

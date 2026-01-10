@@ -71,23 +71,6 @@ Microsoft::WRL::ComPtr<ID3D12Resource> CreateBufferResource(const Microsoft::WRL
 	return resource;
 }
 
-// ウィンドウプロシージャ
-LRESULT CALLBACK WindowProc(HWND hwnd, UINT msg,
-	WPARAM wparam, LPARAM lpram) {
-
-	if (ImGui_ImplWin32_WndProcHandler(hwnd, msg, wparam, lpram)) {
-		return true;
-	}
-
-	// メッセージに応じた処理
-	switch (msg) {
-	case WM_DESTROY: // ウィンドウが破棄された
-		PostQuitMessage(0); // OSに対して、アプリ終了を伝える
-		return 0;
-	}
-	return DefWindowProcW(hwnd, msg, wparam, lpram);
-}
-
 Microsoft::WRL::ComPtr<IDxcBlob> CompileShader(
 	// compilerするShaderファイルへのパス
 	const std::wstring& filePath,
@@ -344,17 +327,7 @@ struct Sphere {
 	Vector3 rotation; //!< 回転角
 };
 
-struct D3DResourceLeakChecker {
-	~D3DResourceLeakChecker() {
-		// リソースリークチェック
-		Microsoft::WRL::ComPtr<IDXGIDebug1> debug;
-		if (SUCCEEDED(DXGIGetDebugInterface1(0, IID_PPV_ARGS(&debug)))) {
-			debug->ReportLiveObjects(DXGI_DEBUG_ALL, DXGI_DEBUG_RLO_ALL);
-			debug->ReportLiveObjects(DXGI_DEBUG_APP, DXGI_DEBUG_RLO_ALL);
-			debug->ReportLiveObjects(DXGI_DEBUG_D3D12, DXGI_DEBUG_RLO_ALL);
-		}
-	}
-};
+
 
 static size_t Align256(size_t size) {
 	return (size + 255) & ~size_t(255);
@@ -367,43 +340,20 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
 	CoInitializeEx(0, COINIT_MULTITHREADED);
 
-	WNDCLASS wc{  };
+	// 1.ウィンドウ作成
+	Window::GetInstance()->CreateGameWindow(L"CG2");
 
-	wc.lpfnWndProc = WindowProc;
-	wc.lpszClassName = L"MyWindowClass";
-	wc.hInstance = GetModuleHandle(nullptr);
-	wc.hCursor = LoadCursor(nullptr, IDC_ARROW);
-	RegisterClass(&wc);
+	// 2.グラフィックスコア(Device)初期化
+	GraphicsCore::GetInstance()->Initialize();
 
-	// ウィンドウの幅と高さ
-	const int32_t kClientWidth = 1280;
-	const int32_t kClientHeight = 720;
-
-	// ウィンドウサイズを決める
-	RECT wrc = { 0,0,kClientWidth,kClientHeight };
-
-	// ウィンドウサイズを補正する
-	AdjustWindowRect(&wrc, WS_OVERLAPPEDWINDOW, FALSE);
-
-	//// 出力ウィンドウへの文字出力
-	//OutputDebugStringA("Hello,DirectX!\n");
-
-	HWND hwnd = CreateWindow(
-		wc.lpszClassName,				// 利用するクラス名
-		L"CG2",							// タイトルバーの文字
-		WS_OVERLAPPEDWINDOW,			// よく見るウィンドウスタイル
-		CW_USEDEFAULT, CW_USEDEFAULT,	// ウィンドウ表示位置x,y座標
-		wrc.right - wrc.left,			// ウィンドウ幅
-		wrc.bottom - wrc.top,			// ウィンドウ高
-		nullptr,						// 親ウィンドウハンドル
-		nullptr,						// メニューハンドル
-		wc.hInstance,					// インスタンスハンドル（全角スペースを半角に修正）
-		nullptr							// オプション
-	);
+	// device や hwnd を取得して使う
+	ID3D12Device* device = GraphicsCore::GetInstance()->GetDevice();
+	HWND hwnd = Window::GetInstance()->GetHwnd();
+	IDXGIFactory7* dxgiFactory = GraphicsCore::GetInstance()->GetFactory();
 
 	MSG msg{};
 
-	ShowWindow(hwnd, SW_SHOW);
+	HRESULT hr = GraphicsCore::GetInstance()->GetHr();
 
 #ifdef _DEBUG
 	Microsoft::WRL::ComPtr<ID3D12Debug1> debugController = nullptr;
@@ -418,15 +368,6 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	/////////////////////////////////////////////
 	// デバイスの設定
 	////////////////////////////////////////////
-
-	// ==============================================
-	// DXGIファクトリーの生成
-	// ==============================================
-	Microsoft::WRL::ComPtr<IDXGIFactory7> dxgiFactory = nullptr;
-
-	HRESULT hr = CreateDXGIFactory1(IID_PPV_ARGS(&dxgiFactory));
-
-	assert(SUCCEEDED(hr));
 
 	// ==============================================
 	// アダプタ(GPU)を決定する
@@ -454,76 +395,6 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
 	// 適切なアダプタが見つからなかったので起動できない
 	assert(useAdapter != nullptr);
-
-	// ================================================
-	// D3D12デバイスの生成
-	// ================================================
-	Microsoft::WRL::ComPtr<ID3D12Device> device = nullptr;
-
-	// 機能レベルとログ出力用の文字列
-	D3D_FEATURE_LEVEL featureLevels[] = {
-		D3D_FEATURE_LEVEL_12_2,
-		D3D_FEATURE_LEVEL_12_1,
-		D3D_FEATURE_LEVEL_12_0,
-	};
-
-	const char* featureLevelStrings[] = { "12.2","12.1","12.0" };
-
-	//　高い順に機能レベル
-	for (size_t i = 0; i < _countof(featureLevels); ++i) {
-		// デバイスの生成を試みる
-		hr = D3D12CreateDevice(
-			useAdapter.Get(),				// 利用するアダプター
-			featureLevels[i],		// 機能レベル
-			IID_PPV_ARGS(&device)	// 作成するデバイスへのポインタ
-		);
-
-		if (SUCCEEDED(hr)) {
-			// 成功したらログ出力
-			Log(std::format("Feature Level : {}\n", featureLevelStrings[i]));
-			break; // ループを抜ける
-		}
-	}
-
-	// デバイスの生成がうまくいかなかったので起動できない時
-	assert(device != nullptr);
-	Log("Complete create D3D12Device!!!\n");
-
-#ifdef _DEBUG
-	ID3D12InfoQueue* infoQueue = nullptr;
-	if (SUCCEEDED(device->QueryInterface(IID_PPV_ARGS(&infoQueue)))) {
-		// やばいエラー時止まる
-		infoQueue->SetBreakOnSeverity(D3D12_MESSAGE_SEVERITY_CORRUPTION, true);
-
-		// エラー時に止まる
-		infoQueue->SetBreakOnSeverity(D3D12_MESSAGE_SEVERITY_ERROR, true);
-
-		// 警告時に止まる
-		infoQueue->SetBreakOnSeverity(D3D12_MESSAGE_SEVERITY_WARNING, true);
-
-		// 抑制するメッセージID
-		D3D12_MESSAGE_ID denyIds[] = {
-			D3D12_MESSAGE_ID_RESOURCE_BARRIER_MISMATCHING_COMMAND_LIST_TYPE
-		};
-
-		// 抑制するレベル
-		D3D12_MESSAGE_SEVERITY severities[] = {
-			D3D12_MESSAGE_SEVERITY_INFO
-		};
-
-		D3D12_INFO_QUEUE_FILTER filter = {};
-		filter.DenyList.NumIDs = _countof(denyIds);
-		filter.DenyList.pIDList = denyIds;
-		filter.DenyList.NumSeverities = _countof(severities);
-		filter.DenyList.pSeverityList = severities;
-
-		// 指定したメッセージの表示を抑制する
-		infoQueue->PushStorageFilter(&filter);
-
-		// 解放
-		infoQueue->Release();
-	}
-#endif
 
 	// ===========================================
 	// コマンドキューを生成する
@@ -573,7 +444,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	// コマンドキュー、ウィンドウハンドル、設定を渡して生成する
 	hr = dxgiFactory->CreateSwapChainForHwnd(
 		commandQueue.Get(),		// コマンドキュー
-		hwnd,				// ウィンドウハンドル
+		Window::GetInstance()->GetHwnd(),				// ウィンドウハンドル
 		&swapChainDesc,		// スワップチェーンの設定
 		nullptr,			// フルスクリーン設定
 		nullptr,			// 制限
@@ -584,7 +455,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	// ==================================
 	// Discripter Heapの生成
 	// ==================================
-	Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> rtvDescriptorHeap = CreateDescriptorHeap(device.Get(), D3D12_DESCRIPTOR_HEAP_TYPE_RTV, 2, false);
+	Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> rtvDescriptorHeap = CreateDescriptorHeap(device, D3D12_DESCRIPTOR_HEAP_TYPE_RTV, 2, false);
 	//D3D12_DESCRIPTOR_HEAP_DESC rtvDescriptorHeapDesc = {};
 	//rtvDescriptorHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_RTV; // レンダーターゲットビュー
 	//rtvDescriptorHeapDesc.NumDescriptors = 2; // ダブルバッファリングなので2つ
@@ -778,6 +649,13 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	D3D12_BLEND_DESC blendDesc = {};
 	// 全ての色要素を書き込む
 	blendDesc.RenderTarget[0].RenderTargetWriteMask = D3D12_COLOR_WRITE_ENABLE_ALL;
+	blendDesc.RenderTarget[0].BlendEnable = TRUE;
+	blendDesc.RenderTarget[0].SrcBlend = D3D12_BLEND_SRC_ALPHA;
+	blendDesc.RenderTarget[0].BlendOp = D3D12_BLEND_OP_ADD;
+	blendDesc.RenderTarget[0].DestBlend = D3D12_BLEND_INV_SRC_ALPHA;
+	blendDesc.RenderTarget[0].SrcBlendAlpha = D3D12_BLEND_ONE;
+	blendDesc.RenderTarget[0].BlendOpAlpha = D3D12_BLEND_OP_ADD;
+	blendDesc.RenderTarget[0].DestBlendAlpha = D3D12_BLEND_ZERO;
 
 	// ==================================
 	// RasterizerStateの設定
@@ -930,7 +808,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	// Objファイル形式で読み込むオブジェクト
 	// ==================================
 	// !\モデル読み込み
-	ModelData objModelData = LoadObjFile("resources", "axis.obj");
+	ModelData objModelData = LoadObjFile("resources", "plane.obj");
 
 	const UINT objVertexCount = static_cast<UINT>(objModelData.vertices.size());
 	// 頂点リソースを作る
@@ -1055,7 +933,8 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	Microsoft::WRL::ComPtr<ID3D12Resource> textureResource = CreateTextureResource(device, metadata);
 
 	// 二枚目のTextureを読んで転送する（Copy命令をコマンドに積む→実行→完了待ち）
-	DirectX::ScratchImage mipImages2 = LoadTexture(objModelData.material.textureFilePath);
+	//DirectX::ScratchImage mipImages2 = LoadTexture(objModelData.material.textureFilePath);
+	DirectX::ScratchImage mipImages2 = LoadTexture("resources/uvChecker.png");
 	const DirectX::TexMetadata& metadata2 = mipImages2.GetMetadata();
 
 	Microsoft::WRL::ComPtr<ID3D12Resource> textureResource2 = CreateTextureResource(device, metadata2);
@@ -1094,7 +973,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	// ==================================
 	Microsoft::WRL::ComPtr<ID3D12Resource> depthStencilResource = CreateDepthStancilTextureResourece(device, kClientWidth, kClientHeight);
 
-	Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> dsvDescriptorHeap = CreateDescriptorHeap(device.Get(), D3D12_DESCRIPTOR_HEAP_TYPE_DSV, 1, false);
+	Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> dsvDescriptorHeap = CreateDescriptorHeap(device, D3D12_DESCRIPTOR_HEAP_TYPE_DSV, 1, false);
 
 	// DepthStencilView(DSV)の設定
 	D3D12_DEPTH_STENCIL_VIEW_DESC dsvDesc = {};
@@ -1252,14 +1131,14 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	// ==================================
 	// ImGuiの初期化
 	// ==================================
-	Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> srvDescriptorHeap = CreateDescriptorHeap(device.Get(), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, 128, true);
+	Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> srvDescriptorHeap = CreateDescriptorHeap(device, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, 128, true);
 
 	IMGUI_CHECKVERSION();
 	ImGui::CreateContext();
 	ImGui::StyleColorsDark();
-	ImGui_ImplWin32_Init(hwnd);
+	ImGui_ImplWin32_Init(Window::GetInstance()->GetHwnd());
 	ImGui_ImplDX12_Init(
-		device.Get(), swapChainDesc.BufferCount, rtvDesc.Format,
+		device, swapChainDesc.BufferCount, rtvDesc.Format,
 		srvDescriptorHeap.Get(), srvDescriptorHeap->GetCPUDescriptorHandleForHeapStart(), srvDescriptorHeap->GetGPUDescriptorHandleForHeapStart()
 	);
 
@@ -1531,8 +1410,8 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 			// SRVのDescriptorTableの先頭を設定。2はrootParameters[2]で設定しているので2になる
 			commandList->SetGraphicsRootDescriptorTable(2, useMonsterBall ? textureSrvHandleGPU2 : textureSrvHandleGPU);
 
-			// 描画コマンド (DrawCall/ドローコール)3頂点で1つの図形を描画
-			commandList->DrawInstanced(UINT(objModelData.vertices.size()),1,0,0); // 頂点3つで1つの図形を描画
+			// Object描画コマンド
+			commandList->DrawInstanced(UINT(objModelData.vertices.size()),1,0,0);
 
 			// ==================================
 			// Sphere描画
@@ -1638,6 +1517,12 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	ImGui_ImplDX12_Shutdown();
 	ImGui_ImplWin32_Shutdown();
 	ImGui::DestroyContext();
+
+	// =======================================
+	// シングルトンで作成した機能が持つポインタなどを解放
+	// =======================================
+	GraphicsCore::GetInstance()->Shutdown();
+	Window::GetInstance()->Shutdown();
 
 	return 0;
 }

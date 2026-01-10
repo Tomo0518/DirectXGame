@@ -139,9 +139,6 @@
     <Filter Include="ソース ファイル\TomoEngine\Engine\Audio">
       <UniqueIdentifier>{6e7b36a4-9342-42ae-84bd-fbfd601e4fbe}</UniqueIdentifier>
     </Filter>
-    <Filter Include="ソース ファイル\TomoEngine\Engine\Input">
-      <UniqueIdentifier>{a18929cd-b3b8-4468-becb-60adafafa909}</UniqueIdentifier>
-    </Filter>
     <Filter Include="ソース ファイル\TomoEngine\Engine\Game">
       <UniqueIdentifier>{81042953-1896-4e44-be70-9419a52ddd0f}</UniqueIdentifier>
     </Filter>
@@ -166,14 +163,29 @@
     <Filter Include="ソース ファイル\TomoEngine\Engine\Asset\Loder\LoadObjFile">
       <UniqueIdentifier>{87517771-a577-4090-9e80-cb717928cddc}</UniqueIdentifier>
     </Filter>
-    <Filter Include="ソース ファイル\TomoEngine\Engine\Input\Pad">
-      <UniqueIdentifier>{5c83266d-c898-4998-93a8-6859aef1721d}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="ソース ファイル\TomoEngine\Engine\Input\InputManager">
-      <UniqueIdentifier>{a056d393-866d-4e90-b7c0-978128397f84}</UniqueIdentifier>
-    </Filter>
     <Filter Include="ソース ファイル\TomoEngine\Engine\Asset\Loder\MaterialData">
       <UniqueIdentifier>{1f33bca7-0fa9-4dc7-8912-29ae865e9761}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ソース ファイル\TomoEngine\Engine\Core\Platform">
+      <UniqueIdentifier>{2aa1aa33-032a-4f3d-9524-26be36c5796f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ソース ファイル\TomoEngine\Engine\Core\Platform\Windows">
+      <UniqueIdentifier>{e23d2304-8f2c-4844-8cd5-d58effe1e931}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ソース ファイル\TomoEngine\Engine\Core\Platform\Windows\Window">
+      <UniqueIdentifier>{e3b6df88-7164-4872-8386-9eee27e8aec8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ソース ファイル\TomoEngine\Engine\Core\Platform\Windows\Window\Input">
+      <UniqueIdentifier>{a18929cd-b3b8-4468-becb-60adafafa909}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ソース ファイル\TomoEngine\Engine\Core\Platform\Windows\Window\Input\Pad">
+      <UniqueIdentifier>{5c83266d-c898-4998-93a8-6859aef1721d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ソース ファイル\TomoEngine\Engine\Core\Platform\Windows\Window\Input\InputManager">
+      <UniqueIdentifier>{a056d393-866d-4e90-b7c0-978128397f84}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ソース ファイル\TomoEngine\Engine\RHI\D3D12\GraphicsCore">
+      <UniqueIdentifier>{67c41400-1c65-4344-b483-5bb5fdcc3650}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -244,13 +256,19 @@
       <Filter>ソース ファイル\TomoEngine\Engine\Asset\Loder\LoadObjFile</Filter>
     </ClCompile>
     <ClCompile Include="InputManager.cpp">
-      <Filter>ソース ファイル\TomoEngine\Engine\Input\InputManager</Filter>
+      <Filter>ソース ファイル\TomoEngine\Engine\Core\Platform\Windows\Window\Input\InputManager</Filter>
     </ClCompile>
     <ClCompile Include="Pad.cpp">
-      <Filter>ソース ファイル\TomoEngine\Engine\Input\Pad</Filter>
+      <Filter>ソース ファイル\TomoEngine\Engine\Core\Platform\Windows\Window\Input\Pad</Filter>
     </ClCompile>
     <ClCompile Include="LoadMaterialTemplateFile.cpp">
       <Filter>ソース ファイル\TomoEngine\Engine\Asset\Loder\MaterialData</Filter>
+    </ClCompile>
+    <ClCompile Include="Window.cpp">
+      <Filter>ソース ファイル\TomoEngine\Engine\Core\Platform\Windows\Window</Filter>
+    </ClCompile>
+    <ClCompile Include="GraphicsCore.cpp">
+      <Filter>ソース ファイル\TomoEngine\Engine\RHI\D3D12\GraphicsCore</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -348,16 +366,25 @@
       <Filter>ソース ファイル\TomoEngine\Engine\Asset\Loder\LoadObjFile</Filter>
     </ClInclude>
     <ClInclude Include="InputManager.h">
-      <Filter>ソース ファイル\TomoEngine\Engine\Input\InputManager</Filter>
+      <Filter>ソース ファイル\TomoEngine\Engine\Core\Platform\Windows\Window\Input\InputManager</Filter>
     </ClInclude>
     <ClInclude Include="Pad.h">
-      <Filter>ソース ファイル\TomoEngine\Engine\Input\Pad</Filter>
+      <Filter>ソース ファイル\TomoEngine\Engine\Core\Platform\Windows\Window\Input\Pad</Filter>
     </ClInclude>
     <ClInclude Include="MaterialData.h">
       <Filter>ソース ファイル\TomoEngine\Engine\Asset\Loder\MaterialData</Filter>
     </ClInclude>
     <ClInclude Include="LoadMaterialTemplateFile.h">
       <Filter>ソース ファイル\TomoEngine\Engine\Asset\Loder\MaterialData</Filter>
+    </ClInclude>
+    <ClInclude Include="Window.h">
+      <Filter>ソース ファイル\TomoEngine\Engine\Core\Platform\Windows\Window</Filter>
+    </ClInclude>
+    <ClInclude Include="GraphicsCore.h">
+      <Filter>ソース ファイル\TomoEngine\Engine\RHI\D3D12\GraphicsCore</Filter>
+    </ClInclude>
+    <ClInclude Include="D3DResourceLeakChecker.h">
+      <Filter>ソース ファイル\TomoEngine\Engine\RHI\D3D12\Debug</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

@@ -50,11 +50,15 @@ extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg
 // Resource
 #include "ResourcesIncludes.h"
 
+// =============================
+// D3D12
+// =============================
+#include "GraphicsCore.h"
 
 // =============================
-// Utility群
+// Core
 // =============================
-#include "Utility.h"
+#include "Core.h"
 
 // =============================
 // 外部ライブラリ
