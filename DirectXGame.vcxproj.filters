@@ -196,6 +196,12 @@
     <Filter Include="ソース ファイル\TomoEngine\Engine\Renderer\RenderTypes">
       <UniqueIdentifier>{4aebddd4-ca7f-4829-a6dc-37e94c4aab82}</UniqueIdentifier>
     </Filter>
+    <Filter Include="ソース ファイル\TomoEngine\Engine\RHI\D3D12\Resources\ResourcesUtility">
+      <UniqueIdentifier>{cf93abf6-3a56-4703-a449-6c153fab5b4b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ソース ファイル\TomoEngine\Engine\RHI\D3D12\Descriptor\DescriptorUtility">
+      <UniqueIdentifier>{5934376c-1004-475f-9ceb-0884aa79992a}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -281,6 +287,12 @@
     </ClCompile>
     <ClCompile Include="CompileShader.cpp">
       <Filter>ソース ファイル\TomoEngine\Engine\RHI\D3D12\Shader\CompileShader</Filter>
+    </ClCompile>
+    <ClCompile Include="ResourcesUtility.cpp">
+      <Filter>ソース ファイル\TomoEngine\Engine\RHI\D3D12\Resources\ResourcesUtility</Filter>
+    </ClCompile>
+    <ClCompile Include="DescriptorUtility.cpp">
+      <Filter>ソース ファイル\TomoEngine\Engine\RHI\D3D12\Descriptor\DescriptorUtility</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -415,6 +427,12 @@
     </ClInclude>
     <ClInclude Include="Renderer.h">
       <Filter>ソース ファイル\TomoEngine\Engine\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="ResourcesUtility.h">
+      <Filter>ソース ファイル\TomoEngine\Engine\RHI\D3D12\Resources\ResourcesUtility</Filter>
+    </ClInclude>
+    <ClInclude Include="DescriptorUtility.h">
+      <Filter>ソース ファイル\TomoEngine\Engine\RHI\D3D12\Descriptor\DescriptorUtility</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

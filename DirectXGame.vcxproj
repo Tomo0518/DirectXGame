@@ -85,6 +85,7 @@ if exist "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" copy /y "$(
     <ClCompile Include="CompileShader.cpp" />
     <ClCompile Include="ConvertString.cpp" />
     <ClCompile Include="DescriptorHeapHelper.cpp" />
+    <ClCompile Include="DescriptorUtility.cpp" />
     <ClCompile Include="externals\imgui\imgui.cpp" />
     <ClCompile Include="externals\imgui\imgui_demo.cpp" />
     <ClCompile Include="externals\imgui\imgui_draw.cpp" />
@@ -104,6 +105,7 @@ if exist "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" copy /y "$(
     <ClCompile Include="Pad.cpp" />
     <ClCompile Include="RendererDX12.cpp" />
     <ClCompile Include="ResourceObject.cpp" />
+    <ClCompile Include="ResourcesUtility.cpp" />
     <ClCompile Include="TomoEngine.cpp" />
     <ClCompile Include="Vector2.cpp" />
     <ClCompile Include="Vector3.cpp" />
@@ -118,6 +120,7 @@ if exist "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" copy /y "$(
     <ClInclude Include="D3D12Includes.h" />
     <ClInclude Include="D3DResourceLeakChecker.h" />
     <ClInclude Include="DescriptorHeapHelper.h" />
+    <ClInclude Include="DescriptorUtility.h" />
     <ClInclude Include="DirectionalLight.h" />
     <ClInclude Include="externals\imgui\imconfig.h" />
     <ClInclude Include="externals\imgui\imgui.h" />
@@ -146,6 +149,7 @@ if exist "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" copy /y "$(
     <ClInclude Include="RenderTypes.h" />
     <ClInclude Include="ResourceObject.h" />
     <ClInclude Include="ResourcesIncludes.h" />
+    <ClInclude Include="ResourcesUtility.h" />
     <ClInclude Include="TomoEngine.h" />
     <ClInclude Include="Transform.h" />
     <ClInclude Include="TransformationMatrix.h" />
