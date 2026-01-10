@@ -82,6 +82,7 @@ if exist "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" copy /y "$(
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="Affine3D.cpp" />
+    <ClCompile Include="CompileShader.cpp" />
     <ClCompile Include="ConvertString.cpp" />
     <ClCompile Include="DescriptorHeapHelper.cpp" />
     <ClCompile Include="externals\imgui\imgui.cpp" />
@@ -111,11 +112,13 @@ if exist "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" copy /y "$(
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Affine3D.h" />
+    <ClInclude Include="CompileShader.h" />
     <ClInclude Include="ConvertString.h" />
     <ClInclude Include="Core.h" />
     <ClInclude Include="D3D12Includes.h" />
     <ClInclude Include="D3DResourceLeakChecker.h" />
     <ClInclude Include="DescriptorHeapHelper.h" />
+    <ClInclude Include="DirectionalLight.h" />
     <ClInclude Include="externals\imgui\imconfig.h" />
     <ClInclude Include="externals\imgui\imgui.h" />
     <ClInclude Include="externals\imgui\imgui_impl_dx12.h" />
@@ -132,16 +135,20 @@ if exist "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" copy /y "$(
     <ClInclude Include="LoadObjFile.h" />
     <ClInclude Include="LoadTexture.h" />
     <ClInclude Include="Logger.h" />
+    <ClInclude Include="Material.h" />
     <ClInclude Include="MaterialData.h" />
     <ClInclude Include="Math.h" />
     <ClInclude Include="Matrix4x4.h" />
     <ClInclude Include="ModelData.h" />
     <ClInclude Include="Pad.h" />
+    <ClInclude Include="Renderer.h" />
     <ClInclude Include="RendererDX12.h" />
+    <ClInclude Include="RenderTypes.h" />
     <ClInclude Include="ResourceObject.h" />
     <ClInclude Include="ResourcesIncludes.h" />
     <ClInclude Include="TomoEngine.h" />
     <ClInclude Include="Transform.h" />
+    <ClInclude Include="TransformationMatrix.h" />
     <ClInclude Include="Utility.h" />
     <ClInclude Include="Vector2.h" />
     <ClInclude Include="Vector3.h" />

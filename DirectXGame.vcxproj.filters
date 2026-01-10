@@ -187,6 +187,15 @@
     <Filter Include="ソース ファイル\TomoEngine\Engine\RHI\D3D12\GraphicsCore">
       <UniqueIdentifier>{67c41400-1c65-4344-b483-5bb5fdcc3650}</UniqueIdentifier>
     </Filter>
+    <Filter Include="ソース ファイル\TomoEngine\Engine\RHI\D3D12\Shader">
+      <UniqueIdentifier>{d0b7f919-b138-4a4e-8e5e-4c492338c969}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ソース ファイル\TomoEngine\Engine\RHI\D3D12\Shader\CompileShader">
+      <UniqueIdentifier>{36e52b68-4805-40c9-8fe8-5a7d58061a2a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ソース ファイル\TomoEngine\Engine\Renderer\RenderTypes">
+      <UniqueIdentifier>{4aebddd4-ca7f-4829-a6dc-37e94c4aab82}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -269,6 +278,9 @@
     </ClCompile>
     <ClCompile Include="GraphicsCore.cpp">
       <Filter>ソース ファイル\TomoEngine\Engine\RHI\D3D12\GraphicsCore</Filter>
+    </ClCompile>
+    <ClCompile Include="CompileShader.cpp">
+      <Filter>ソース ファイル\TomoEngine\Engine\RHI\D3D12\Shader\CompileShader</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -385,6 +397,24 @@
     </ClInclude>
     <ClInclude Include="D3DResourceLeakChecker.h">
       <Filter>ソース ファイル\TomoEngine\Engine\RHI\D3D12\Debug</Filter>
+    </ClInclude>
+    <ClInclude Include="CompileShader.h">
+      <Filter>ソース ファイル\TomoEngine\Engine\RHI\D3D12\Shader\CompileShader</Filter>
+    </ClInclude>
+    <ClInclude Include="Material.h">
+      <Filter>ソース ファイル\TomoEngine\Engine\Renderer\RenderTypes</Filter>
+    </ClInclude>
+    <ClInclude Include="TransformationMatrix.h">
+      <Filter>ソース ファイル\TomoEngine\Engine\Renderer\RenderTypes</Filter>
+    </ClInclude>
+    <ClInclude Include="DirectionalLight.h">
+      <Filter>ソース ファイル\TomoEngine\Engine\Renderer\RenderTypes</Filter>
+    </ClInclude>
+    <ClInclude Include="RenderTypes.h">
+      <Filter>ソース ファイル\TomoEngine\Engine\Renderer\RenderTypes</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer.h">
+      <Filter>ソース ファイル\TomoEngine\Engine\Renderer</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
