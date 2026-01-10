@@ -958,13 +958,36 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	//ID3D12Resource* transformationMatrixResourceSprite = CreateBufferResource(device.Get(), sizeof(Matrix4x4));
 	ResourceObject transformationMatrixResourceSprite = CreateBufferResource(device, Align256(sizeof(Matrix4x4)));
 	Matrix4x4* transformationMatrixDataSprite = nullptr;
-	// 書き込むためのアドレスを取得
+	// 書き込むためのアドレスを取得 vertexBufferView
 	transformationMatrixResourceSprite.Get()->Map(0, nullptr, reinterpret_cast<void**>(&transformationMatrixDataSprite));
 	// 単位行列を書き込む
 	*transformationMatrixDataSprite = Matrix4x4::MakeIdentity4x4();
 
 	// CPUで動かす用の行列を用意
 	Transform transformSprite{ {1.0f,1.0f,1.0f},{0.0f,0.0f,0.0f},{0.0f,0.0f,0.0f} };
+
+	// ==================================
+	// Objファイル形式で読み込むオブジェクト
+	// ==================================
+	// !\モデル読み込み
+	ModelData objModelData = LoadObjFile("resources", "plane.obj");
+
+	const UINT objVertexCount = static_cast<UINT>(objModelData.vertices.size());
+	// 頂点リソースを作る
+	Microsoft::WRL::ComPtr<ID3D12Resource> objVertexResource =
+		CreateBufferResource(device, sizeof(VertexData) * objModelData.vertices.size());
+
+	//頂点バッファビューを作成する
+	D3D12_VERTEX_BUFFER_VIEW objVertexBufferView{};
+	objVertexBufferView.BufferLocation = objVertexResource->GetGPUVirtualAddress();
+	objVertexBufferView.SizeInBytes = UINT(sizeof(VertexData) * objModelData.vertices.size());
+	objVertexBufferView.StrideInBytes = sizeof(VertexData);
+
+	//頂点リソースにデータを書き込む
+	VertexData* objVertexData = nullptr;
+	objVertexResource->Map(0, nullptr, reinterpret_cast<void**>(&objVertexData));
+	std::memcpy(objVertexData, objModelData.vertices.data(),
+		sizeof(VertexData)* objModelData.vertices.size());
 
 	// ==================================
 	// Sphere用のResourceの生成
@@ -974,6 +997,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	// 頂点数 (分割数 * 分割数 * 6頂点)
 	const uint32_t kSphereVertexCount = kSubdivision * kSubdivision * 6;
 
+
 	// 頂点リソースの作成
 	ResourceObject vertexResourceSphere = CreateBufferResource(device, sizeof(VertexData) * kSphereVertexCount);
 
@@ -982,6 +1006,8 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	vertexBufferViewSphere.BufferLocation = vertexResourceSphere.Get()->GetGPUVirtualAddress();
 	vertexBufferViewSphere.SizeInBytes = sizeof(VertexData) * kSphereVertexCount;
 	vertexBufferViewSphere.StrideInBytes = sizeof(VertexData);
+
+
 
 	// 頂点データを書き込む
 	VertexData* vertexDataSphere = nullptr;
@@ -1131,52 +1157,41 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	indexDataSprite[5] = 5;
 
 	// ==================================
-	// VertexBufferViewを作成する
-	// ==================================
-	// 頂点バッファビューを作成する
-	D3D12_VERTEX_BUFFER_VIEW vertexBufferView = {};
-	// リソースの先頭のアドレスから使う
-	vertexBufferView.BufferLocation = vertexResource->GetGPUVirtualAddress();
-	// 使用するリソースのサイズは頂点3つ分のサイズ
-	vertexBufferView.SizeInBytes = sizeof(VertexData) * 6;
-	// 1頂点あたりのサイズ
-	vertexBufferView.StrideInBytes = sizeof(VertexData);
-
-	// ==================================
 	// Resourceにデータを書き込む
 	// ==================================
 	// 頂点データ
 	//Vector4* vertexData = nullptr;
 	VertexData* vertexData = nullptr;
-	// 書き込むためのアドレスを取得
-	vertexResource->Map(0, nullptr, reinterpret_cast<void**>(&vertexData));
-	// 左下
-	vertexData[0].position = { -0.5f,-0.5f,0.0f,1.0f };
-	vertexData[0].texcoord = { 0.0f,1.0f };
-	vertexData[0].normal = { 0.0f,0.0f,-1.0f };
-	// 上
-	vertexData[1].position = { 0.0f,0.5f,0.0f,1.0f };
-	vertexData[1].texcoord = { 0.5f,0.0f };
-	vertexData[1].normal = { 0.0f,0.0f,-1.0f };
-	// 右下
-	vertexData[2].position = { 0.5f,-0.5f,0.0f,1.0f };
-	vertexData[2].texcoord = { 1.0f,1.0f };
-	vertexData[2].normal = { 0.0f,0.0f,-1.0f };
+	vertexResource->Map(0, nullptr, reinterpret_cast<void**>(&vertexData)); // 書き込むためのアドレスを取得
+	std::memcpy(vertexData, objModelData.vertices.data(), sizeof(VertexData)* objModelData.vertices.size()); // 頂点データをリソースにコピー
 
-	// 左下2
-	vertexData[3].position = { -0.5f, -0.5f, 0.5f, 1.0f };
-	vertexData[3].texcoord = { 0.0f, 1.0f };
-	vertexData[3].normal = { 0.0f,0.0f,1.0f };
+	//// 左下
+	//vertexData[0].position = { -0.5f,-0.5f,0.0f,1.0f };
+	//vertexData[0].texcoord = { 0.0f,1.0f };
+	//vertexData[0].normal = { 0.0f,0.0f,-1.0f };
+	//// 上
+	//vertexData[1].position = { 0.0f,0.5f,0.0f,1.0f };
+	//vertexData[1].texcoord = { 0.5f,0.0f };
+	//vertexData[1].normal = { 0.0f,0.0f,-1.0f };
+	//// 右下
+	//vertexData[2].position = { 0.5f,-0.5f,0.0f,1.0f };
+	//vertexData[2].texcoord = { 1.0f,1.0f };
+	//vertexData[2].normal = { 0.0f,0.0f,-1.0f };
 
-	// 上2
-	vertexData[4].position = { 0.0f, 0.0f, 0.0f, 1.0f };
-	vertexData[4].texcoord = { 0.5f, 0.0f };
-	vertexData[4].normal = { 0.0f,0.0f,1.0f };
+	//// 左下2
+	//vertexData[3].position = { -0.5f, -0.5f, 0.5f, 1.0f };
+	//vertexData[3].texcoord = { 0.0f, 1.0f };
+	//vertexData[3].normal = { 0.0f,0.0f,1.0f };
 
-	// 右下2
-	vertexData[5].position = { 0.5f, -0.5f, -0.5f, 1.0f };
-	vertexData[5].texcoord = { 1.0f, 1.0f };
-	vertexData[5].normal = { 0.0f,0.0f,1.0f };
+	//// 上2
+	//vertexData[4].position = { 0.0f, 0.0f, 0.0f, 1.0f };
+	//vertexData[4].texcoord = { 0.5f, 0.0f };
+	//vertexData[4].normal = { 0.0f,0.0f,1.0f };
+
+	//// 右下2
+	//vertexData[5].position = { 0.5f, -0.5f, -0.5f, 1.0f };
+	//vertexData[5].texcoord = { 1.0f, 1.0f };
+	//vertexData[5].normal = { 0.0f,0.0f,1.0f };
 
 	// ==================================
 	// ViewportとScissor(シザー)
@@ -1465,7 +1480,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 			commandList->RSSetScissorRects(1, &scissorRect);
 			commandList->SetGraphicsRootSignature(rootSignature.Get());
 			commandList->SetPipelineState(graphicsPipelineState.Get());
-			commandList->IASetVertexBuffers(0, 1, &vertexBufferView);
+			commandList->IASetVertexBuffers(0, 1, &objVertexBufferView);
 			commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
 			// まず DescriptorHeap をバインドする（CBV/SRV/UAV 用）
@@ -1494,7 +1509,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 			commandList->SetGraphicsRootDescriptorTable(2, useMonsterBall ? textureSrvHandleGPU2 : textureSrvHandleGPU);
 
 			// 描画コマンド (DrawCall/ドローコール)3頂点で1つの図形を描画
-			//commandList->DrawInstanced(6, 1, 0, 0); // 頂点3つで1つの図形を描画
+			commandList->DrawInstanced(UINT(objModelData.vertices.size()),1,0,0); // 頂点3つで1つの図形を描画
 
 			// ==================================
 			// Sphere描画
@@ -1505,6 +1520,12 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 			commandList->SetGraphicsRootConstantBufferView(1, wvpResourceSphere.Get()->GetGPUVirtualAddress());
 			// 描画コマンド (頂点数分を描画)
 			commandList->DrawInstanced(kSphereVertexCount, 1, 0, 0);
+
+			// ==================================
+			// Obj描画
+			// ==================================
+			commandList->IASetVertexBuffers(0, 1, &objVertexBufferView);
+			commandList->DrawInstanced(objVertexCount, 1, 0, 0);
 
 			// ==================================
 			// Sprite描画

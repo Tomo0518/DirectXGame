@@ -36,6 +36,7 @@ ModelData LoadObjFile(const std::string& directoryPath, const std::string& fileN
 			Vector4 position;
 			s >> position.x >> position.y >> position.z;
 			position.w = 1.0f; // w成分は1.0fに設定
+			position.x *= -1.0f;
 			positions.push_back(position);
 
 		}
@@ -47,6 +48,7 @@ ModelData LoadObjFile(const std::string& directoryPath, const std::string& fileN
 		else if (identifier == "vn") { // 法線ベクトル
 			Vector3 normal;
 			s >> normal.x >> normal.y >> normal.z;
+			normal.x *= -1.0f;
 			normals.push_back(normal);
 		}
 		else if (identifier == "f") { // 面情報

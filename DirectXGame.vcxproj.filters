@@ -166,6 +166,12 @@
     <Filter Include="ソース ファイル\TomoEngine\Engine\Asset\Loder\LoadObjFile">
       <UniqueIdentifier>{87517771-a577-4090-9e80-cb717928cddc}</UniqueIdentifier>
     </Filter>
+    <Filter Include="ソース ファイル\TomoEngine\Engine\Input\Pad">
+      <UniqueIdentifier>{5c83266d-c898-4998-93a8-6859aef1721d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ソース ファイル\TomoEngine\Engine\Input\InputManager">
+      <UniqueIdentifier>{a056d393-866d-4e90-b7c0-978128397f84}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -233,6 +239,12 @@
     </ClCompile>
     <ClCompile Include="LoadObjFile.cpp">
       <Filter>ソース ファイル\TomoEngine\Engine\Asset\Loder\LoadObjFile</Filter>
+    </ClCompile>
+    <ClCompile Include="InputManager.cpp">
+      <Filter>ソース ファイル\TomoEngine\Engine\Input\InputManager</Filter>
+    </ClCompile>
+    <ClCompile Include="Pad.cpp">
+      <Filter>ソース ファイル\TomoEngine\Engine\Input\Pad</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -328,6 +340,12 @@
     </ClInclude>
     <ClInclude Include="LoadObjFile.h">
       <Filter>ソース ファイル\TomoEngine\Engine\Asset\Loder\LoadObjFile</Filter>
+    </ClInclude>
+    <ClInclude Include="InputManager.h">
+      <Filter>ソース ファイル\TomoEngine\Engine\Input\InputManager</Filter>
+    </ClInclude>
+    <ClInclude Include="Pad.h">
+      <Filter>ソース ファイル\TomoEngine\Engine\Input\Pad</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
