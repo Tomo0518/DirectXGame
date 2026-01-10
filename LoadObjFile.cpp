@@ -1,4 +1,5 @@
 #include "LoadObjFile.h"
+#include "LoadMaterialTemplateFile.h"
 
 #include <fstream>
 #include <sstream>
@@ -43,6 +44,7 @@ ModelData LoadObjFile(const std::string& directoryPath, const std::string& fileN
 		else if (identifier == "vt") { // UV座標
 			Vector2 texcoord;
 			s >> texcoord.x >> texcoord.y;
+			texcoord.y = 1.0f - texcoord.y;
 			texcoords.push_back(texcoord);
 		}
 		else if (identifier == "vn") { // 法線ベクトル
@@ -52,6 +54,8 @@ ModelData LoadObjFile(const std::string& directoryPath, const std::string& fileN
 			normals.push_back(normal);
 		}
 		else if (identifier == "f") { // 面情報
+			VertexData triangle[3];
+
 			// 面は三角形限定 その他は未対応
 			for (int32_t faceVertex = 0; faceVertex < 3; ++faceVertex) {
 				std::string vertexDefinition;
@@ -70,9 +74,21 @@ ModelData LoadObjFile(const std::string& directoryPath, const std::string& fileN
 				Vector4 position = positions[elementIndices[0] - 1];
 				Vector2 texcoord = texcoords[elementIndices[1] - 1];
 				Vector3 normal = normals[elementIndices[2] - 1];
-				VertexData vertex = { position,texcoord,normal };
-				modelData.vertices.push_back(vertex);
+				triangle[faceVertex] = { position,texcoord,normal };
+
 			}
+
+			modelData.vertices.push_back(triangle[2]);
+			modelData.vertices.push_back(triangle[1]);
+			modelData.vertices.push_back(triangle[0]);
+			
+		}
+		else if (identifier == "mtllib") {
+			// materialTemplateLibraryファイルの名前を取得する
+			std::string materialFilename;
+			s >> materialFilename;
+			// 基本的にobjファイルと同一階層にmtlは存在させるのでディレクトリ名とファイル名を渡す
+			modelData.material = LoadMaterialTemplateFile(directoryPath, materialFilename);
 		}
 	}
 

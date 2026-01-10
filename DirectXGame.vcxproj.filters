@@ -172,6 +172,9 @@
     <Filter Include="ソース ファイル\TomoEngine\Engine\Input\InputManager">
       <UniqueIdentifier>{a056d393-866d-4e90-b7c0-978128397f84}</UniqueIdentifier>
     </Filter>
+    <Filter Include="ソース ファイル\TomoEngine\Engine\Asset\Loder\MaterialData">
+      <UniqueIdentifier>{1f33bca7-0fa9-4dc7-8912-29ae865e9761}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -245,6 +248,9 @@
     </ClCompile>
     <ClCompile Include="Pad.cpp">
       <Filter>ソース ファイル\TomoEngine\Engine\Input\Pad</Filter>
+    </ClCompile>
+    <ClCompile Include="LoadMaterialTemplateFile.cpp">
+      <Filter>ソース ファイル\TomoEngine\Engine\Asset\Loder\MaterialData</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -346,6 +352,12 @@
     </ClInclude>
     <ClInclude Include="Pad.h">
       <Filter>ソース ファイル\TomoEngine\Engine\Input\Pad</Filter>
+    </ClInclude>
+    <ClInclude Include="MaterialData.h">
+      <Filter>ソース ファイル\TomoEngine\Engine\Asset\Loder\MaterialData</Filter>
+    </ClInclude>
+    <ClInclude Include="LoadMaterialTemplateFile.h">
+      <Filter>ソース ファイル\TomoEngine\Engine\Asset\Loder\MaterialData</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

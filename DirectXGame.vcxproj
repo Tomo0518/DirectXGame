@@ -93,6 +93,7 @@ if exist "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" copy /y "$(
     <ClCompile Include="externals\imgui\imgui_widgets.cpp" />
     <ClCompile Include="Game.cpp" />
     <ClCompile Include="InputManager.cpp" />
+    <ClCompile Include="LoadMaterialTemplateFile.cpp" />
     <ClCompile Include="LoadObjFile.cpp" />
     <ClCompile Include="Logger.cpp" />
     <ClCompile Include="main.cpp" />
@@ -123,9 +124,11 @@ if exist "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" copy /y "$(
     <ClInclude Include="Game.h" />
     <ClInclude Include="Game\Object\Player\Player.h" />
     <ClInclude Include="InputManager.h" />
+    <ClInclude Include="LoadMaterialTemplateFile.h" />
     <ClInclude Include="LoadObjFile.h" />
     <ClInclude Include="LoadTexture.h" />
     <ClInclude Include="Logger.h" />
+    <ClInclude Include="MaterialData.h" />
     <ClInclude Include="Math.h" />
     <ClInclude Include="Matrix4x4.h" />
     <ClInclude Include="ModelData.h" />

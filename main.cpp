@@ -655,50 +655,6 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	assert(SUCCEEDED(hr));
 
 	// ==================================
-	// Textureを読んで転送する（Copy命令をコマンドに積む→実行→完了待ち）
-	// ==================================
-	DirectX::ScratchImage mipImages = LoadTexture("resources/uvChecker.png");
-	const DirectX::TexMetadata& metadata = mipImages.GetMetadata();
-
-	// ResourceObject で受け取る
-	Microsoft::WRL::ComPtr<ID3D12Resource> textureResource = CreateTextureResource(device, metadata);
-
-	// 二枚目のTextureを読んで転送する（Copy命令をコマンドに積む→実行→完了待ち）
-	DirectX::ScratchImage mipImages2 = LoadTexture("resources/monsterBall.png");
-	const DirectX::TexMetadata& metadata2 = mipImages2.GetMetadata();
-
-	Microsoft::WRL::ComPtr<ID3D12Resource> textureResource2 = CreateTextureResource(device, metadata2);
-
-	// テクスチャ転送コマンドを積むために、コマンドリストを開く
-	hr = commandAllocator->Reset();
-	assert(SUCCEEDED(hr));
-	hr = commandList->Reset(commandAllocator.Get(), nullptr);
-	assert(SUCCEEDED(hr));
-
-	// Upload命令を積む（IntermediateResource を受け取って保持する）
-	ResourceObject intermediateResource = UploadTextureData(textureResource, mipImages, device, commandList);
-
-	// 2枚目
-	ResourceObject intermediateResource2 = UploadTextureData(textureResource2, mipImages2, device, commandList);
-
-	// コマンドを閉じて実行
-	hr = commandList->Close();
-	assert(SUCCEEDED(hr));
-
-	ID3D12CommandList* commandLists[] = { commandList.Get() };
-	commandQueue->ExecuteCommandLists(1, commandLists);
-
-	// 実行完了を待つ（ここで GPU がコピーを終える）
-	fenceValue++;
-	hr = commandQueue->Signal(fence.Get(), fenceValue);
-	assert(SUCCEEDED(hr));
-	if (fence->GetCompletedValue() < fenceValue) {
-		hr = fence->SetEventOnCompletion(fenceValue, fenceEvent);
-		assert(SUCCEEDED(hr));
-		WaitForSingleObject(fenceEvent, INFINITE);
-	}
-
-	// ==================================
 	// RootSignatureの生成
 	// ==================================
 	D3D12_ROOT_SIGNATURE_DESC descriptionRootSignature = {};
@@ -970,7 +926,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	// Objファイル形式で読み込むオブジェクト
 	// ==================================
 	// !\モデル読み込み
-	ModelData objModelData = LoadObjFile("resources", "plane.obj");
+	ModelData objModelData = LoadObjFile("resources", "axis.obj");
 
 	const UINT objVertexCount = static_cast<UINT>(objModelData.vertices.size());
 	// 頂点リソースを作る
@@ -1083,6 +1039,51 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	wvpResourceSphere.Get()->Map(0, nullptr, reinterpret_cast<void**>(&wvpDataSphere));
 	wvpDataSphere->WVP = Matrix4x4::MakeIdentity4x4();
 	wvpDataSphere->World = Matrix4x4::MakeIdentity4x4();
+
+
+	// ==================================
+	// Textureを読んで転送する（Copy命令をコマンドに積む→実行→完了待ち）
+	// ==================================
+	DirectX::ScratchImage mipImages = LoadTexture("resources/uvChecker.png");
+	const DirectX::TexMetadata& metadata = mipImages.GetMetadata();
+
+	// ResourceObject で受け取る
+	Microsoft::WRL::ComPtr<ID3D12Resource> textureResource = CreateTextureResource(device, metadata);
+
+	// 二枚目のTextureを読んで転送する（Copy命令をコマンドに積む→実行→完了待ち）
+	DirectX::ScratchImage mipImages2 = LoadTexture(objModelData.material.textureFilePath);
+	const DirectX::TexMetadata& metadata2 = mipImages2.GetMetadata();
+
+	Microsoft::WRL::ComPtr<ID3D12Resource> textureResource2 = CreateTextureResource(device, metadata2);
+
+	// テクスチャ転送コマンドを積むために、コマンドリストを開く
+	hr = commandAllocator->Reset();
+	assert(SUCCEEDED(hr));
+	hr = commandList->Reset(commandAllocator.Get(), nullptr);
+	assert(SUCCEEDED(hr));
+
+	// Upload命令を積む（IntermediateResource を受け取って保持する）
+	ResourceObject intermediateResource = UploadTextureData(textureResource, mipImages, device, commandList);
+
+	// 2枚目
+	ResourceObject intermediateResource2 = UploadTextureData(textureResource2, mipImages2, device, commandList);
+
+	// コマンドを閉じて実行
+	hr = commandList->Close();
+	assert(SUCCEEDED(hr));
+
+	ID3D12CommandList* commandLists[] = { commandList.Get() };
+	commandQueue->ExecuteCommandLists(1, commandLists);
+
+	// 実行完了を待つ（ここで GPU がコピーを終える）
+	fenceValue++;
+	hr = commandQueue->Signal(fence.Get(), fenceValue);
+	assert(SUCCEEDED(hr));
+	if (fence->GetCompletedValue() < fenceValue) {
+		hr = fence->SetEventOnCompletion(fenceValue, fenceEvent);
+		assert(SUCCEEDED(hr));
+		WaitForSingleObject(fenceEvent, INFINITE);
+	}
 
 	// ==================================
 	// DepthStencil用のResourceの生成
@@ -1221,7 +1222,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	Transform cameraTransform{ {1.0f,1.0f,1.0f},{0.0f,0.0f,0.0f},{0.0f,0.0f,-5.0f} };
 
 	// ImGui で操作するマテリアルカラー (RGBA)
-	float materialColor[4] = { 1.0f,0.0f,0.0f,1.0f };
+	float materialColor[4] = { 1.0f,1.0f,1.0f,1.0f };
 
 	Matrix4x4* transformationMatrixData{};
 
@@ -1366,7 +1367,8 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 			//==================================
 			// ゲームの処理 ↓↓
 			//==================================
-			transform.rotate.y += 0.03f;
+			//transform.rotate.y += 0.03f;
+
 			Matrix4x4 worldMatrix = MakeAffineMatrix(
 				transform.scale,
 				transform.rotate,
@@ -1393,6 +1395,8 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 			// 線
 			ImGui::Separator();
 			ImGui::Checkbox("Use MonsterBall Texture", &useMonsterBall);
+			ImGui::DragFloat3("SpriteRotate", &transform.rotate.x, 0.01f);
+			
 
 			// UVのSRT
 			ImGui::DragFloat2("UVTranslate", &uvTransformSprite.translate.x,0.01f,-10.0f,10.0f);
@@ -1457,7 +1461,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 			// =======================================
 			// Sphereの更新
 			// =======================================
-			sphere.rotation.y += 0.02f;
+			//sphere.rotation.y += 0.02f;
 
 			// 半径をスケール、中心を平行移動としてワールド行列を作成
 			Matrix4x4 worldMatrixSphere = MakeAffineMatrix(
@@ -1519,13 +1523,13 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 			// WVP用のCBufferの場所を設定 (Sphere用の行列リソースを指定)
 			commandList->SetGraphicsRootConstantBufferView(1, wvpResourceSphere.Get()->GetGPUVirtualAddress());
 			// 描画コマンド (頂点数分を描画)
-			commandList->DrawInstanced(kSphereVertexCount, 1, 0, 0);
+			//commandList->DrawInstanced(kSphereVertexCount, 1, 0, 0);
 
 			// ==================================
 			// Obj描画
 			// ==================================
 			commandList->IASetVertexBuffers(0, 1, &objVertexBufferView);
-			commandList->DrawInstanced(objVertexCount, 1, 0, 0);
+			//commandList->DrawInstanced(objVertexCount, 1, 0, 0);
 
 			// ==================================
 			// Sprite描画
@@ -1550,7 +1554,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 			);
 
 			// 描画コマンド
-			commandList->DrawIndexedInstanced(6, 1, 0, 0, 0);
+			//commandList->DrawIndexedInstanced(6, 1, 0, 0, 0);
 
 			// ==================================
 			// ImGuiの描画
