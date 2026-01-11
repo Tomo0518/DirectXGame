@@ -82,6 +82,8 @@ if exist "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" copy /y "$(
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="Affine3D.cpp" />
+    <ClCompile Include="CommandContext.cpp" />
+    <ClCompile Include="CommandQueue.cpp" />
     <ClCompile Include="CompileShader.cpp" />
     <ClCompile Include="ConvertString.cpp" />
     <ClCompile Include="DescriptorHeapHelper.cpp" />
@@ -114,6 +116,8 @@ if exist "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" copy /y "$(
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Affine3D.h" />
+    <ClInclude Include="CommandContext.h" />
+    <ClInclude Include="CommandQueue.h" />
     <ClInclude Include="CompileShader.h" />
     <ClInclude Include="ConvertString.h" />
     <ClInclude Include="Core.h" />

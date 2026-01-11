@@ -20,8 +20,6 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	// リソースリークチェッカー
 	D3DResourceLeakChecker leakChecker;
 
-	CoInitializeEx(0, COINIT_MULTITHREADED);
-
 	// 1.ウィンドウ作成
 	Window::GetInstance()->CreateGameWindow(L"CG2");
 
@@ -110,6 +108,18 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	hr = commandList->Close();
 	assert(SUCCEEDED(hr));
 
+	// ==================================
+	// FenceとEventの生成
+	// ==================================
+	Microsoft::WRL::ComPtr<ID3D12Fence> fence = nullptr;
+	uint64_t fenceValue = 0;
+	hr = device->CreateFence(fenceValue, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&fence));
+	assert(SUCCEEDED(hr));
+
+	// FenceのSignalを待つためのEventを生成
+	HANDLE fenceEvent = CreateEvent(nullptr, FALSE, FALSE, nullptr);
+	assert(fenceEvent != nullptr);
+
 	// ============================================
 	// スワップチェーンを作成する
 	// ============================================
@@ -183,17 +193,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	//	SIZE_T ptr;
 	//} D3D12_CPU_DESCRIPTOR_HANDLE;
 
-	// ==================================
-	// FenceとEventの生成
-	// ==================================
-	Microsoft::WRL::ComPtr<ID3D12Fence> fence = nullptr;
-	uint64_t fenceValue = 0;
-	hr = device->CreateFence(fenceValue, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&fence));
-	assert(SUCCEEDED(hr));
 
-	// FenceのSingnalを待つためのEventを生成
-	HANDLE fenceEvent = CreateEvent(nullptr, FALSE, FALSE, nullptr);
-	assert(fenceEvent != nullptr);
 
 	// ==================================
 	// DXCの初期化

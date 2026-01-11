@@ -205,6 +205,15 @@
     <Filter Include="ソース ファイル\TomoEngine\Engine\Math\Geometry">
       <UniqueIdentifier>{85f127cf-b308-4484-b7f6-cfc59d34ad74}</UniqueIdentifier>
     </Filter>
+    <Filter Include="ソース ファイル\TomoEngine\Engine\RHI\D3D12\Command">
+      <UniqueIdentifier>{b3d2a8a0-37b7-45b9-87c9-48e40ee0890c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ソース ファイル\TomoEngine\Engine\RHI\D3D12\Command\CommandQueue">
+      <UniqueIdentifier>{48f3ed5f-9eac-4896-879f-f79a8c5092e4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ソース ファイル\TomoEngine\Engine\RHI\D3D12\Command\CommandContext">
+      <UniqueIdentifier>{474841b5-d437-4c99-92c0-668b301c05c3}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -296,6 +305,12 @@
     </ClCompile>
     <ClCompile Include="DescriptorUtility.cpp">
       <Filter>ソース ファイル\TomoEngine\Engine\RHI\D3D12\Descriptor\DescriptorUtility</Filter>
+    </ClCompile>
+    <ClCompile Include="CommandQueue.cpp">
+      <Filter>ソース ファイル\TomoEngine\Engine\RHI\D3D12\Command\CommandQueue</Filter>
+    </ClCompile>
+    <ClCompile Include="CommandContext.cpp">
+      <Filter>ソース ファイル\TomoEngine\Engine\RHI\D3D12\Command\CommandContext</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -439,6 +454,12 @@
     </ClInclude>
     <ClInclude Include="Sphere.h">
       <Filter>ソース ファイル\TomoEngine\Engine\Math\Geometry</Filter>
+    </ClInclude>
+    <ClInclude Include="CommandQueue.h">
+      <Filter>ソース ファイル\TomoEngine\Engine\RHI\D3D12\Command\CommandQueue</Filter>
+    </ClInclude>
+    <ClInclude Include="CommandContext.h">
+      <Filter>ソース ファイル\TomoEngine\Engine\RHI\D3D12\Command\CommandContext</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

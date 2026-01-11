@@ -8,6 +8,9 @@
 #include <dxgi1_6.h>
 #pragma comment(lib, "dxgi.lib")
 
+#include "CommandQueue.h"
+#include "CommandContext.h"
+
 // DirectX12デバイスの生成と管理を行うコアシステム
 // MiniEngineにおけるGraphicsCore名前空間の役割を担う
 class GraphicsCore {
@@ -28,6 +31,12 @@ public:
 	IDXGIFactory7* GetFactory() const { return dxgiFactory_.Get(); }
 
 	HRESULT GetHr() { return hr_; }
+	
+	// コマンドキューを取得する
+	CommandQueue& GetCommandQueue() { return commandQueue_; }
+
+	// コマンドコンテキストを取得する
+	CommandContext& GetCommandContext() { return commandContext_; }
 
 private:
 	GraphicsCore() = default;
@@ -45,4 +54,8 @@ private:
 	Microsoft::WRL::ComPtr<ID3D12Debug1> debugController_;
 	Microsoft::WRL::ComPtr<ID3D12InfoQueue> infoQueue_;
 #endif
+
+	// コマンドキューとコマンドコンテキスト
+	CommandQueue commandQueue_;
+	CommandContext commandContext_;
 };
