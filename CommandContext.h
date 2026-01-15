@@ -2,62 +2,81 @@
 #include <d3d12.h>
 #include <wrl/client.h>
 #include <vector>
+#include <string>
+#include <queue>
+#include <mutex>
 
 // 前方宣言
-class CommandQueue;
+class CommandListManager;
+class GpuResource;
+class CommandContext;
+class GraphicsContext;
 
-// コマンドリストへの記録を管理するクラス
-// ResourceBarrierのバッチ処理や、RenderResourceの管理を行う
-class CommandContext {
+// ==================================================================================
+// コンテキスト管理プール
+// ==================================================================================
+class ContextManager {
 public:
-	// コンストラクタでデバイスとキューを受け取る
-	void Initialize(ID3D12Device* device, CommandQueue* queue);
-
-	// 終了処理
-	void Shutdown();
-
-	// コマンドリストの記録を開始する（アロケータのリセットなど）
-	void Start();
-
-	// コマンドリストの記録を終了し、キューで実行する
-	// 戻り値: 実行完了を待つためのフェンス値
-	uint64_t Finish(bool waitForCompletion = false);
-
-	// リソースバリアの設定（即時発行せず、ドローコール直前まで溜め込む）
-	void TransitionResource(ID3D12Resource* resource, D3D12_RESOURCE_STATES stateBefore, D3D12_RESOURCE_STATES stateAfter);
-
-	// 溜め込んだバリアをコマンドリストに積む
-	void FlushResourceBarriers();
-
-	// === コマンドリストのラッパー関数群 ===
-	void ClearRenderTarget(D3D12_CPU_DESCRIPTOR_HANDLE rtv, const float* color);
-	void ClearDepth(D3D12_CPU_DESCRIPTOR_HANDLE dsv);
-
-	void SetRenderTargets(UINT numRTV, const D3D12_CPU_DESCRIPTOR_HANDLE* rtv, D3D12_CPU_DESCRIPTOR_HANDLE dsv);
-	void SetViewport(const D3D12_VIEWPORT& viewport);
-	void SetScissorRect(const D3D12_RECT& rect);
-
-	void SetGraphicsRootSignature(ID3D12RootSignature* rootSig);
-	void SetPipelineState(ID3D12PipelineState* pso);
-	void SetPrimitiveTopology(D3D12_PRIMITIVE_TOPOLOGY topology);
-
-	void SetVertexBuffer(UINT slot, const D3D12_VERTEX_BUFFER_VIEW& view);
-	void SetDescriptorHeap(ID3D12DescriptorHeap* heap);
-	void SetGraphicsRootConstantBufferView(UINT rootParameterIndex, D3D12_GPU_VIRTUAL_ADDRESS address);
-	void SetGraphicsRootDescriptorTable(UINT rootParameterIndex, D3D12_GPU_DESCRIPTOR_HANDLE baseDescriptor);
-
-	void DrawInstanced(UINT vertexCount, UINT instanceCount, UINT startVertex, UINT startInstance);
-
-	// 生のリスト取得（緊急回避用）
-	ID3D12GraphicsCommandList* GetCommandList() const { return commandList_.Get(); }
+    CommandContext* AllocateContext(D3D12_COMMAND_LIST_TYPE type);
+    void ReturnToPool(CommandContext* context, D3D12_COMMAND_LIST_TYPE type);
 
 private:
-	CommandQueue* queue_ = nullptr; // 所属するキュー
-	Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList> commandList_;
-	Microsoft::WRL::ComPtr<ID3D12CommandAllocator> commandAllocator_;
+    std::queue<CommandContext*> m_availableContexts[4];
+    std::mutex m_contextMutex;
+};
 
-	// バリアのバッチ処理用
-	static const int kMaxResourceBarriers = 16;
-	D3D12_RESOURCE_BARRIER resourceBarriers_[kMaxResourceBarriers];
-	UINT numBarriersToFlush_ = 0;
+// ==================================================================================
+// コマンドコンテキスト
+// ==================================================================================
+class CommandContext {
+public:
+    // コンテキストの取得と開始
+    static CommandContext& Begin(const std::wstring& ID = L"");
+
+    // コンテキストの終了と実行
+    uint64_t Finish(bool waitForCompletion = false);
+
+    // リソースバリア
+    void TransitionResource(GpuResource& resource, D3D12_RESOURCE_STATES newState, bool flushImmediate = false);
+    void FlushResourceBarriers();
+
+    // コマンドリスト取得
+    ID3D12GraphicsCommandList* GetCommandList() const { return m_commandList; }
+
+    // ContextManager用のヘルパーメソッド（内部使用）
+    void ResetForReuse(); // Reset()をpublicにラップ
+    void SetDebugName(const std::wstring& name); // デバッグ名設定
+
+protected:
+    CommandContext(D3D12_COMMAND_LIST_TYPE type);
+    virtual ~CommandContext();
+
+    void Initialize();
+    void Reset();
+
+    CommandListManager* m_owningManager = nullptr;
+    Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList> m_commandListPtr;
+    ID3D12GraphicsCommandList* m_commandList = nullptr;
+    ID3D12CommandAllocator* m_currentAllocator = nullptr;
+
+    static const int MAX_RESOURCE_BARRIERS = 16;
+    D3D12_RESOURCE_BARRIER m_resourceBarrierBuffer[MAX_RESOURCE_BARRIERS];
+    uint32_t m_numBarriersToFlush = 0;
+
+    D3D12_COMMAND_LIST_TYPE m_type;
+
+    friend class ContextManager;
+};
+
+// ==================================================================================
+// グラフィックスコンテキスト
+// ==================================================================================
+class GraphicsContext : public CommandContext {
+public:
+    static GraphicsContext& Begin(const std::wstring& ID = L"");
+
+protected:
+    GraphicsContext() : CommandContext(D3D12_COMMAND_LIST_TYPE_DIRECT) {}
+
+    friend class ContextManager;
 };

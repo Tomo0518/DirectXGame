@@ -1,4 +1,6 @@
 #pragma once
+#include <cmath>
+#include "Vector3.h"
 
 class Matrix4x4 {
 public:
@@ -23,6 +25,58 @@ public:
 
 	//（left/top/right/bottom 指定）
 	static Matrix4x4 MakeOrthographicMatrix(float left, float top, float right, float bottom, float nearZ, float farZ);
+
+	/// <summary>
+	/// スケーリング、回転、平行移動を組み合わせたアフィン変換行列を作成します。
+	/// </summary>
+	static Matrix4x4 MakeTranslateMatrix(const Vector3& translation) {
+		Matrix4x4 result = MakeIdentity4x4();
+		result.m[0][3] = translation.x;
+		result.m[1][3] = translation.y;
+		result.m[2][3] = translation.z;
+		return result;
+	}
+
+	static Matrix4x4 MakeScaleMatrix(const Vector3& scale) {
+		Matrix4x4 result = MakeIdentity4x4();
+		result.m[0][0] = scale.x;
+		result.m[1][1] = scale.y;
+		result.m[2][2] = scale.z;
+		return result;
+	}
+
+	static Matrix4x4 MakeRotateXMatrix(float angle) {
+		Matrix4x4 result = MakeIdentity4x4();
+		float c = std::cos(angle);
+		float s = std::sin(angle);
+		result.m[1][1] = c;
+		result.m[1][2] = -s;
+		result.m[2][1] = s;
+		result.m[2][2] = c;
+		return result;
+	}
+
+	static Matrix4x4 MakeRotateYMatrix(float angle) {
+		Matrix4x4 result = MakeIdentity4x4();
+		float c = std::cos(angle);
+		float s = std::sin(angle);
+		result.m[0][0] = c;
+		result.m[0][2] = s;
+		result.m[2][0] = -s;
+		result.m[2][2] = c;
+		return result;
+	}
+
+	static Matrix4x4 MakeRotateZMatrix(float angle) {
+		Matrix4x4 result = MakeIdentity4x4();
+		float c = std::cos(angle);
+		float s = std::sin(angle);
+		result.m[0][0] = c;
+		result.m[0][1] = -s;
+		result.m[1][0] = s;
+		result.m[1][1] = c;
+		return result;
+	}
 
 private:
 	static float Determinant3x3(

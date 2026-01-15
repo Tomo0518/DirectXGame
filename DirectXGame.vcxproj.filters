@@ -214,6 +214,21 @@
     <Filter Include="ソース ファイル\TomoEngine\Engine\RHI\D3D12\Command\CommandContext">
       <UniqueIdentifier>{474841b5-d437-4c99-92c0-668b301c05c3}</UniqueIdentifier>
     </Filter>
+    <Filter Include="ソース ファイル\TomoEngine\Engine\Math\3D\Camera">
+      <UniqueIdentifier>{b5893e5a-ac5b-46c6-818f-47fdf71f28c7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ソース ファイル\TomoEngine\Engine\Math\3D\Transform">
+      <UniqueIdentifier>{8c2d6632-26be-4a15-9a6c-9c8aadc8c25e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ソース ファイル\TomoEngine\Engine\Asset\Model">
+      <UniqueIdentifier>{fbde2133-9e75-4d5f-9526-25f204f718fa}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ソース ファイル\TomoEngine\Engine\RHI\D3D12\Command\CommandListManager">
+      <UniqueIdentifier>{bd950618-a503-4d33-9cde-8476d7279eb5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ソース ファイル\TomoEngine\Engine\RHI\D3D12\GpuResource">
+      <UniqueIdentifier>{7107c6ef-d27c-492d-bbf7-d981c99f2510}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -312,6 +327,21 @@
     <ClCompile Include="CommandContext.cpp">
       <Filter>ソース ファイル\TomoEngine\Engine\RHI\D3D12\Command\CommandContext</Filter>
     </ClCompile>
+    <ClCompile Include="Player.cpp">
+      <Filter>ソース ファイル\TomoEngine\Engine\Game\Object</Filter>
+    </ClCompile>
+    <ClCompile Include="Transform.cpp">
+      <Filter>ソース ファイル\TomoEngine\Engine\Math\3D\Transform</Filter>
+    </ClCompile>
+    <ClCompile Include="Camera.cpp">
+      <Filter>ソース ファイル\TomoEngine\Engine\Math\3D\Camera</Filter>
+    </ClCompile>
+    <ClCompile Include="Model.cpp">
+      <Filter>ソース ファイル\TomoEngine\Engine\Asset\Model</Filter>
+    </ClCompile>
+    <ClCompile Include="CommandListManager.cpp">
+      <Filter>ソース ファイル\TomoEngine\Engine\RHI\D3D12\Command\CommandListManager</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Logger.h">
@@ -329,9 +359,6 @@
     <ClInclude Include="ConvertString.h">
       <Filter>ソース ファイル\TomoEngine\Engine\Core\Utility\ConvertString</Filter>
     </ClInclude>
-    <ClInclude Include="Game\Object\Player\Player.h">
-      <Filter>ソース ファイル\TomoEngine\Engine\Game\Object</Filter>
-    </ClInclude>
     <ClInclude Include="RendererDX12.h">
       <Filter>ソース ファイル\TomoEngine\Engine\Core\Modules</Filter>
     </ClInclude>
@@ -340,9 +367,6 @@
     </ClInclude>
     <ClInclude Include="Vector3.h">
       <Filter>ソース ファイル\TomoEngine\Engine\Math\3D\Vector3</Filter>
-    </ClInclude>
-    <ClInclude Include="Transform.h">
-      <Filter>ソース ファイル\TomoEngine\Engine\Math\3D</Filter>
     </ClInclude>
     <ClInclude Include="Vector4.h">
       <Filter>ソース ファイル\TomoEngine\Engine\Math\3D\Vector4</Filter>
@@ -460,6 +484,24 @@
     </ClInclude>
     <ClInclude Include="CommandContext.h">
       <Filter>ソース ファイル\TomoEngine\Engine\RHI\D3D12\Command\CommandContext</Filter>
+    </ClInclude>
+    <ClInclude Include="Player.h">
+      <Filter>ソース ファイル\TomoEngine\Engine\Game\Object</Filter>
+    </ClInclude>
+    <ClInclude Include="Transform.h">
+      <Filter>ソース ファイル\TomoEngine\Engine\Math\3D\Transform</Filter>
+    </ClInclude>
+    <ClInclude Include="Camera.h">
+      <Filter>ソース ファイル\TomoEngine\Engine\Math\3D\Camera</Filter>
+    </ClInclude>
+    <ClInclude Include="Model.h">
+      <Filter>ソース ファイル\TomoEngine\Engine\Asset\Model</Filter>
+    </ClInclude>
+    <ClInclude Include="CommandListManager.h">
+      <Filter>ソース ファイル\TomoEngine\Engine\RHI\D3D12\Command\CommandListManager</Filter>
+    </ClInclude>
+    <ClInclude Include="GpuResource.h">
+      <Filter>ソース ファイル\TomoEngine\Engine\RHI\D3D12\GpuResource</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

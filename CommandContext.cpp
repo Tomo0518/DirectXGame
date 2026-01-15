@@ -1,138 +1,233 @@
 #include "CommandContext.h"
-#include "CommandQueue.h"
+#include "GpuResource.h"
+#include "CommandListManager.h"
+#include "GraphicsCore.h"
+
 #include <cassert>
 
-void CommandContext::Initialize(ID3D12Device* device, CommandQueue* queue) {
-	assert(device != nullptr && queue != nullptr);
-	queue_ = queue;
+// グローバルなマネージャインスタンス
+static ContextManager g_ContextManager;
 
-	// コマンドアロケータの生成
-	HRESULT hr = device->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(&commandAllocator_));
-	assert(SUCCEEDED(hr));
+// ==================================================================================
+// ContextManager 実装
+// ==================================================================================
 
-	// コマンドリストの生成
-	hr = device->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, commandAllocator_.Get(), nullptr, IID_PPV_ARGS(&commandList_));
-	assert(SUCCEEDED(hr));
+CommandContext* ContextManager::AllocateContext(D3D12_COMMAND_LIST_TYPE type) {
+    std::lock_guard<std::mutex> lock(m_contextMutex);
 
-	// 初期状態はCloseしておく（StartでResetするため）
-	commandList_->Close();
+    // 利用可能なコンテキストがあれば再利用
+    auto& pool = m_availableContexts[type];
+    if (!pool.empty()) {
+        CommandContext* ret = pool.front();
+        pool.pop();
+        return ret;
+    }
+
+    // なければ新規作成
+    CommandContext* ret = nullptr;
+    if (type == D3D12_COMMAND_LIST_TYPE_DIRECT) {
+        ret = new GraphicsContext();
+    }
+    else {
+        ret = new CommandContext(type);
+    }
+
+    ret->Initialize();
+    return ret;
 }
 
-void CommandContext::Shutdown() {
-	commandAllocator_.Reset();
-	commandList_.Reset();
-	queue_ = nullptr;
+void ContextManager::ReturnToPool(CommandContext* context, D3D12_COMMAND_LIST_TYPE type) {
+    std::lock_guard<std::mutex> lock(m_contextMutex);
+    m_availableContexts[type].push(context);
 }
 
-void CommandContext::Start() {
-	// アロケータとコマンドリストをリセットして記録開始状態にする
-	// ※本来は実行完了待ちが必要だが、今回はFinishでWaitを入れる簡易実装とする
-	HRESULT hr = commandAllocator_->Reset();
-	assert(SUCCEEDED(hr));
+// ==================================================================================
+// CommandContext 実装
+// ==================================================================================
 
-	hr = commandList_->Reset(commandAllocator_.Get(), nullptr);
-	assert(SUCCEEDED(hr));
-
-	numBarriersToFlush_ = 0;
+CommandContext::CommandContext(D3D12_COMMAND_LIST_TYPE type)
+    : m_type(type)
+    , m_commandList(nullptr)
+    , m_currentAllocator(nullptr)
+    , m_numBarriersToFlush(0)
+    , m_owningManager(nullptr)
+{
+    m_owningManager = &GraphicsCore::GetInstance()->GetCommandListManager();
 }
 
-uint64_t CommandContext::Finish(bool waitForCompletion) {
-	// 未発行のバリアがあれば発行
-	FlushResourceBarriers();
-
-	// 記録終了
-	HRESULT hr = commandList_->Close();
-	assert(SUCCEEDED(hr));
-
-	// キューで実行
-	uint64_t fenceValue = queue_->ExecuteCommandList(commandList_.Get());
-
-	// 完了待ちフラグがあれば待機
-	if (waitForCompletion) {
-		queue_->WaitForFence(fenceValue);
-	}
-
-	return fenceValue;
+CommandContext::~CommandContext()
+{
+    m_commandListPtr.Reset();
 }
 
-void CommandContext::TransitionResource(ID3D12Resource* resource, D3D12_RESOURCE_STATES stateBefore, D3D12_RESOURCE_STATES stateAfter) {
-	if (stateBefore == stateAfter) return;
+void CommandContext::Initialize()
+{
+    ID3D12Device* device = GraphicsCore::GetInstance()->GetDevice();
+    assert(device != nullptr);
 
-	// バッファが一杯になったら一度フラッシュ
-	if (numBarriersToFlush_ >= kMaxResourceBarriers) {
-		FlushResourceBarriers();
-	}
+    CommandQueue* queue = nullptr;
+    switch (m_type) {
+    case D3D12_COMMAND_LIST_TYPE_DIRECT:
+        queue = &m_owningManager->GetGraphicsQueue();
+        break;
+    case D3D12_COMMAND_LIST_TYPE_COMPUTE:
+        queue = &m_owningManager->GetComputeQueue();
+        break;
+    case D3D12_COMMAND_LIST_TYPE_COPY:
+        queue = &m_owningManager->GetCopyQueue();
+        break;
+    }
+    assert(queue != nullptr);
 
-	D3D12_RESOURCE_BARRIER& barrier = resourceBarriers_[numBarriersToFlush_++];
-	barrier.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
-	barrier.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
-	barrier.Transition.pResource = resource;
-	barrier.Transition.StateBefore = stateBefore;
-	barrier.Transition.StateAfter = stateAfter;
-	barrier.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
+    ID3D12CommandAllocator* initialAllocator = queue->RequestAllocator();
+
+    HRESULT hr = device->CreateCommandList(
+        0, m_type, initialAllocator, nullptr, IID_PPV_ARGS(&m_commandListPtr));
+    assert(SUCCEEDED(hr));
+
+    m_commandList = m_commandListPtr.Get();
+
+    switch (m_type) {
+    case D3D12_COMMAND_LIST_TYPE_DIRECT:
+        m_commandListPtr->SetName(L"GraphicsContext");
+        break;
+    case D3D12_COMMAND_LIST_TYPE_COMPUTE:
+        m_commandListPtr->SetName(L"ComputeContext");
+        break;
+    case D3D12_COMMAND_LIST_TYPE_COPY:
+        m_commandListPtr->SetName(L"CopyContext");
+        break;
+    }
+
+    m_commandList->Close();
+    queue->DiscardAllocator(0, initialAllocator);
 }
 
-void CommandContext::FlushResourceBarriers() {
-	if (numBarriersToFlush_ > 0) {
-		commandList_->ResourceBarrier(numBarriersToFlush_, resourceBarriers_);
-		numBarriersToFlush_ = 0;
-	}
+void CommandContext::Reset()
+{
+    CommandQueue* queue = nullptr;
+    switch (m_type) {
+    case D3D12_COMMAND_LIST_TYPE_DIRECT:
+        queue = &m_owningManager->GetGraphicsQueue();
+        break;
+    case D3D12_COMMAND_LIST_TYPE_COMPUTE:
+        queue = &m_owningManager->GetComputeQueue();
+        break;
+    case D3D12_COMMAND_LIST_TYPE_COPY:
+        queue = &m_owningManager->GetCopyQueue();
+        break;
+    }
+    assert(queue != nullptr);
+
+    m_currentAllocator = queue->RequestAllocator();
+
+    HRESULT hr = m_commandList->Reset(m_currentAllocator, nullptr);
+    assert(SUCCEEDED(hr));
+
+    m_numBarriersToFlush = 0;
 }
 
-// === 以下ラッパー関数 ===
-
-void CommandContext::ClearRenderTarget(D3D12_CPU_DESCRIPTOR_HANDLE rtv, const float* color) {
-	FlushResourceBarriers(); // 描画・クリア命令の前にバリアをフラッシュ
-	commandList_->ClearRenderTargetView(rtv, color, 0, nullptr);
+// ContextManager用のヘルパーメソッド
+void CommandContext::ResetForReuse()
+{
+    Reset(); // protectedメソッドを呼び出す
 }
 
-void CommandContext::ClearDepth(D3D12_CPU_DESCRIPTOR_HANDLE dsv) {
-	FlushResourceBarriers();
-	commandList_->ClearDepthStencilView(dsv, D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0, 0, nullptr);
+void CommandContext::SetDebugName(const std::wstring& name)
+{
+    if (!name.empty() && m_commandList) {
+        m_commandList->SetName(name.c_str());
+    }
 }
 
-void CommandContext::SetRenderTargets(UINT numRTV, const D3D12_CPU_DESCRIPTOR_HANDLE* rtv, D3D12_CPU_DESCRIPTOR_HANDLE dsv) {
-	commandList_->OMSetRenderTargets(numRTV, rtv, FALSE, &dsv);
+CommandContext& CommandContext::Begin(const std::wstring& ID)
+{
+    CommandContext* newContext = g_ContextManager.AllocateContext(D3D12_COMMAND_LIST_TYPE_DIRECT);
+    newContext->ResetForReuse(); // publicメソッドを使用
+    newContext->SetDebugName(ID); // publicメソッドを使用
+
+    return *newContext;
 }
 
-void CommandContext::SetViewport(const D3D12_VIEWPORT& viewport) {
-	commandList_->RSSetViewports(1, &viewport);
+uint64_t CommandContext::Finish(bool waitForCompletion)
+{
+    FlushResourceBarriers();
+
+    HRESULT hr = m_commandList->Close();
+    assert(SUCCEEDED(hr));
+
+    CommandQueue* queue = nullptr;
+    switch (m_type) {
+    case D3D12_COMMAND_LIST_TYPE_DIRECT:
+        queue = &m_owningManager->GetGraphicsQueue();
+        break;
+    case D3D12_COMMAND_LIST_TYPE_COMPUTE:
+        queue = &m_owningManager->GetComputeQueue();
+        break;
+    case D3D12_COMMAND_LIST_TYPE_COPY:
+        queue = &m_owningManager->GetCopyQueue();
+        break;
+    }
+    assert(queue != nullptr);
+
+    uint64_t fenceValue = queue->ExecuteCommandList(m_commandList);
+
+    queue->DiscardAllocator(fenceValue, m_currentAllocator);
+    m_currentAllocator = nullptr;
+
+    if (waitForCompletion) {
+        queue->WaitForFence(fenceValue);
+    }
+
+    g_ContextManager.ReturnToPool(this, m_type);
+
+    return fenceValue;
 }
 
-void CommandContext::SetScissorRect(const D3D12_RECT& rect) {
-	commandList_->RSSetScissorRects(1, &rect);
+void CommandContext::TransitionResource(GpuResource& resource, D3D12_RESOURCE_STATES newState, bool flushImmediate)
+{
+    D3D12_RESOURCE_STATES oldState = resource.m_UsageState;
+
+    if (oldState != newState)
+    {
+        assert(m_numBarriersToFlush < MAX_RESOURCE_BARRIERS);
+
+        D3D12_RESOURCE_BARRIER& barrierDesc = m_resourceBarrierBuffer[m_numBarriersToFlush++];
+
+        barrierDesc.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
+        barrierDesc.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
+        barrierDesc.Transition.pResource = resource.GetResource();
+        barrierDesc.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
+        barrierDesc.Transition.StateBefore = oldState;
+        barrierDesc.Transition.StateAfter = newState;
+
+        resource.m_UsageState = newState;
+    }
+
+    if (flushImmediate || m_numBarriersToFlush == MAX_RESOURCE_BARRIERS)
+    {
+        FlushResourceBarriers();
+    }
 }
 
-void CommandContext::SetGraphicsRootSignature(ID3D12RootSignature* rootSig) {
-	commandList_->SetGraphicsRootSignature(rootSig);
+void CommandContext::FlushResourceBarriers()
+{
+    if (m_numBarriersToFlush > 0)
+    {
+        m_commandList->ResourceBarrier(m_numBarriersToFlush, m_resourceBarrierBuffer);
+        m_numBarriersToFlush = 0;
+    }
 }
 
-void CommandContext::SetPipelineState(ID3D12PipelineState* pso) {
-	commandList_->SetPipelineState(pso);
-}
+// ==================================================================================
+// GraphicsContext 実装
+// ==================================================================================
 
-void CommandContext::SetPrimitiveTopology(D3D12_PRIMITIVE_TOPOLOGY topology) {
-	commandList_->IASetPrimitiveTopology(topology);
-}
+GraphicsContext& GraphicsContext::Begin(const std::wstring& ID)
+{
+    CommandContext* newContext = g_ContextManager.AllocateContext(D3D12_COMMAND_LIST_TYPE_DIRECT);
+    newContext->ResetForReuse(); // publicメソッドを使用
+    newContext->SetDebugName(ID); // publicメソッドを使用
 
-void CommandContext::SetVertexBuffer(UINT slot, const D3D12_VERTEX_BUFFER_VIEW& view) {
-	commandList_->IASetVertexBuffers(slot, 1, &view);
-}
-
-void CommandContext::SetDescriptorHeap(ID3D12DescriptorHeap* heap) {
-	ID3D12DescriptorHeap* heaps[] = { heap };
-	commandList_->SetDescriptorHeaps(1, heaps);
-}
-
-void CommandContext::SetGraphicsRootConstantBufferView(UINT rootParameterIndex, D3D12_GPU_VIRTUAL_ADDRESS address) {
-	commandList_->SetGraphicsRootConstantBufferView(rootParameterIndex, address);
-}
-
-void CommandContext::SetGraphicsRootDescriptorTable(UINT rootParameterIndex, D3D12_GPU_DESCRIPTOR_HANDLE baseDescriptor) {
-	commandList_->SetGraphicsRootDescriptorTable(rootParameterIndex, baseDescriptor);
-}
-
-void CommandContext::DrawInstanced(UINT vertexCount, UINT instanceCount, UINT startVertex, UINT startInstance) {
-	FlushResourceBarriers(); // 描画前に必ずバリアをフラッシュ
-	commandList_->DrawInstanced(vertexCount, instanceCount, startVertex, startInstance);
+    return static_cast<GraphicsContext&>(*newContext);
 }

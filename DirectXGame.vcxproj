@@ -82,7 +82,9 @@ if exist "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" copy /y "$(
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="Affine3D.cpp" />
+    <ClCompile Include="Camera.cpp" />
     <ClCompile Include="CommandContext.cpp" />
+    <ClCompile Include="CommandListManager.cpp" />
     <ClCompile Include="CommandQueue.cpp" />
     <ClCompile Include="CompileShader.cpp" />
     <ClCompile Include="ConvertString.cpp" />
@@ -103,12 +105,15 @@ if exist "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" copy /y "$(
     <ClCompile Include="Logger.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Matrix4x4.cpp" />
+    <ClCompile Include="Model.cpp" />
     <ClCompile Include="ModelData.cpp" />
     <ClCompile Include="Pad.cpp" />
+    <ClCompile Include="Player.cpp" />
     <ClCompile Include="RendererDX12.cpp" />
     <ClCompile Include="ResourceObject.cpp" />
     <ClCompile Include="ResourcesUtility.cpp" />
     <ClCompile Include="TomoEngine.cpp" />
+    <ClCompile Include="Transform.cpp" />
     <ClCompile Include="Vector2.cpp" />
     <ClCompile Include="Vector3.cpp" />
     <ClCompile Include="Vector4.cpp" />
@@ -116,7 +121,9 @@ if exist "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" copy /y "$(
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Affine3D.h" />
+    <ClInclude Include="Camera.h" />
     <ClInclude Include="CommandContext.h" />
+    <ClInclude Include="CommandListManager.h" />
     <ClInclude Include="CommandQueue.h" />
     <ClInclude Include="CompileShader.h" />
     <ClInclude Include="ConvertString.h" />
@@ -135,7 +142,7 @@ if exist "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" copy /y "$(
     <ClInclude Include="externals\imgui\imstb_textedit.h" />
     <ClInclude Include="externals\imgui\imstb_truetype.h" />
     <ClInclude Include="Game.h" />
-    <ClInclude Include="Game\Object\Player\Player.h" />
+    <ClInclude Include="GpuResource.h" />
     <ClInclude Include="GraphicsCore.h" />
     <ClInclude Include="InputManager.h" />
     <ClInclude Include="LoadMaterialTemplateFile.h" />
@@ -146,8 +153,10 @@ if exist "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" copy /y "$(
     <ClInclude Include="MaterialData.h" />
     <ClInclude Include="Math.h" />
     <ClInclude Include="Matrix4x4.h" />
+    <ClInclude Include="Model.h" />
     <ClInclude Include="ModelData.h" />
     <ClInclude Include="Pad.h" />
+    <ClInclude Include="Player.h" />
     <ClInclude Include="Renderer.h" />
     <ClInclude Include="RendererDX12.h" />
     <ClInclude Include="RenderTypes.h" />

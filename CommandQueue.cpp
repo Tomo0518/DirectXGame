@@ -27,39 +27,39 @@ void CommandQueue::Initialize(ID3D12Device* device, D3D12_COMMAND_LIST_TYPE type
 	nextFenceValue_ = 1;
 }
 
-void CommandQueue::Shutdown() {
-	if (fenceEvent_) {
-		CloseHandle(fenceEvent_);
-		fenceEvent_ = nullptr;
-	}
-	commandQueue_.Reset();
-	fence_.Reset();
-}
+//void CommandQueue::Shutdown() {
+//	if (fenceEvent_) {
+//		CloseHandle(fenceEvent_);
+//		fenceEvent_ = nullptr;
+//	}
+//	commandQueue_.Reset();
+//	fence_.Reset();
+//}
 
-uint64_t CommandQueue::ExecuteCommandList(ID3D12CommandList* commandList) {
-	// コマンドリストを実行
-	commandQueue_->ExecuteCommandLists(1, &commandList);
-
-	// フェンスにシグナルを送る
-	// "このコマンドリストが終わったら、この値(nextFenceValue_)を書き込んでね" という命令
-	uint64_t fenceValue = nextFenceValue_;
-	commandQueue_->Signal(fence_.Get(), fenceValue);
-
-	// 次回のフェンス値を更新
-	nextFenceValue_++;
-
-	return fenceValue;
-}
+//uint64_t CommandQueue::ExecuteCommandList(ID3D12CommandList* commandList) {
+//	// コマンドリストを実行
+//	commandQueue_->ExecuteCommandLists(1, &commandList);
+//
+//	// フェンスにシグナルを送る
+//	// "このコマンドリストが終わったら、この値(nextFenceValue_)を書き込んでね" という命令
+//	uint64_t fenceValue = nextFenceValue_;
+//	commandQueue_->Signal(fence_.Get(), fenceValue);
+//
+//	// 次回のフェンス値を更新
+//	nextFenceValue_++;
+//
+//	return fenceValue;
+//}
 
 void CommandQueue::WaitOnGPU(uint64_t fenceValue) {
 	// 指定したフェンス値になるまで、このキューをGPU側で待機させる
 	commandQueue_->Wait(fence_.Get(), fenceValue);
 }
 
-void CommandQueue::WaitForFence(uint64_t fenceValue) {
-	// 指定した値にまだ達していない場合、CPUを止めて待つ
-	if (fence_->GetCompletedValue() < fenceValue) {
-		fence_->SetEventOnCompletion(fenceValue, fenceEvent_);
-		WaitForSingleObject(fenceEvent_, INFINITE);
-	}
-}
+//void CommandQueue::WaitForFence(uint64_t fenceValue) {
+//	// 指定した値にまだ達していない場合、CPUを止めて待つ
+//	if (fence_->GetCompletedValue() < fenceValue) {
+//		fence_->SetEventOnCompletion(fenceValue, fenceEvent_);
+//		WaitForSingleObject(fenceEvent_, INFINITE);
+//	}
+//}

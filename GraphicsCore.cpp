@@ -3,8 +3,6 @@
 #include <cassert>
 #include <format>
 
-
-
 GraphicsCore* GraphicsCore::GetInstance() {
 	static GraphicsCore instance;
 	return &instance;
@@ -89,6 +87,7 @@ void GraphicsCore::Initialize() {
 		infoQueue_->PushStorageFilter(&filter);
 	}
 #endif
+
 }
 
 void GraphicsCore::Shutdown() {

@@ -14,7 +14,7 @@ public:
 	void Shutdown();
 
 	// コマンドリストを実行し、その完了を待つためのフェンス値を返す
-	uint64_t ExecuteCommandList(ID3D12CommandList* commandList);
+	//uint64_t ExecuteCommandList(ID3D12CommandList* commandList);
 
 	// 特定のフェンス値になるまでGPUを待機させる（GPU側でのWait）
 	// ※主にComputeQueueとDirectQueueの同期などで使用
