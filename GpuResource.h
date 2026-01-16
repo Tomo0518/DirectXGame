@@ -1,6 +1,7 @@
 #pragma once
 #include <d3d12.h>
 #include <wrl/client.h>
+#include <string>
 
 // GPU仮想アドレスが未定義の場合の対応
 #ifndef D3D12_GPU_VIRTUAL_ADDRESS_NULL
@@ -43,6 +44,13 @@ public:
 
     // GPU仮想アドレス（Constant Buffer Viewなどで使用）
     D3D12_GPU_VIRTUAL_ADDRESS GetGpuVirtualAddress() const { return m_GpuVirtualAddress; }
+
+    // デバッグ用の名前を設定
+    void SetName(const std::wstring& name) {
+        if (m_pResource) {
+            m_pResource->SetName(name.c_str());
+        }
+    }
 
 protected:
     // リソースの実体（ComPtrで管理し、メモリリークを防ぐ）

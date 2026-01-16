@@ -205,15 +205,6 @@
     <Filter Include="ソース ファイル\TomoEngine\Engine\Math\Geometry">
       <UniqueIdentifier>{85f127cf-b308-4484-b7f6-cfc59d34ad74}</UniqueIdentifier>
     </Filter>
-    <Filter Include="ソース ファイル\TomoEngine\Engine\RHI\D3D12\Command">
-      <UniqueIdentifier>{b3d2a8a0-37b7-45b9-87c9-48e40ee0890c}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="ソース ファイル\TomoEngine\Engine\RHI\D3D12\Command\CommandQueue">
-      <UniqueIdentifier>{48f3ed5f-9eac-4896-879f-f79a8c5092e4}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="ソース ファイル\TomoEngine\Engine\RHI\D3D12\Command\CommandContext">
-      <UniqueIdentifier>{474841b5-d437-4c99-92c0-668b301c05c3}</UniqueIdentifier>
-    </Filter>
     <Filter Include="ソース ファイル\TomoEngine\Engine\Math\3D\Camera">
       <UniqueIdentifier>{b5893e5a-ac5b-46c6-818f-47fdf71f28c7}</UniqueIdentifier>
     </Filter>
@@ -223,14 +214,32 @@
     <Filter Include="ソース ファイル\TomoEngine\Engine\Asset\Model">
       <UniqueIdentifier>{fbde2133-9e75-4d5f-9526-25f204f718fa}</UniqueIdentifier>
     </Filter>
-    <Filter Include="ソース ファイル\TomoEngine\Engine\RHI\D3D12\Command\CommandListManager">
+    <Filter Include="ソース ファイル\TomoEngine\Engine\Core\Command">
+      <UniqueIdentifier>{b3d2a8a0-37b7-45b9-87c9-48e40ee0890c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ソース ファイル\TomoEngine\Engine\Core\Command\CommandQueue">
+      <UniqueIdentifier>{48f3ed5f-9eac-4896-879f-f79a8c5092e4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ソース ファイル\TomoEngine\Engine\Core\Command\CommandListManager">
       <UniqueIdentifier>{bd950618-a503-4d33-9cde-8476d7279eb5}</UniqueIdentifier>
     </Filter>
-    <Filter Include="ソース ファイル\TomoEngine\Engine\RHI\D3D12\GpuResource">
+    <Filter Include="ソース ファイル\TomoEngine\Engine\Core\Command\CommandContext">
+      <UniqueIdentifier>{474841b5-d437-4c99-92c0-668b301c05c3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ソース ファイル\TomoEngine\Engine\Core\Descriptor">
+      <UniqueIdentifier>{4c9c98d1-3e0d-4c44-90f0-0243531161c2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ソース ファイル\TomoEngine\Engine\Core\GpuResource">
       <UniqueIdentifier>{7107c6ef-d27c-492d-bbf7-d981c99f2510}</UniqueIdentifier>
     </Filter>
-    <Filter Include="ソース ファイル\TomoEngine\Engine\RHI\D3D12\Descriptor\Descriptor">
-      <UniqueIdentifier>{4c9c98d1-3e0d-4c44-90f0-0243531161c2}</UniqueIdentifier>
+    <Filter Include="ソース ファイル\TomoEngine\Engine\Core\PixelBuffer">
+      <UniqueIdentifier>{e991cc58-54d2-4963-b6c8-91dfd33c5bd0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ソース ファイル\TomoEngine\Engine\Core\ColorBuffer">
+      <UniqueIdentifier>{16bac512-5b43-4e6f-bbfd-345952c65f37}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ソース ファイル\TomoEngine\Engine\Core\DepthBuffer">
+      <UniqueIdentifier>{84fb8c1b-1556-44b8-9908-bce47f919378}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -325,10 +334,10 @@
       <Filter>ソース ファイル\TomoEngine\Engine\RHI\D3D12\Descriptor\DescriptorUtility</Filter>
     </ClCompile>
     <ClCompile Include="CommandQueue.cpp">
-      <Filter>ソース ファイル\TomoEngine\Engine\RHI\D3D12\Command\CommandQueue</Filter>
+      <Filter>ソース ファイル\TomoEngine\Engine\Core\Command\CommandQueue</Filter>
     </ClCompile>
     <ClCompile Include="CommandContext.cpp">
-      <Filter>ソース ファイル\TomoEngine\Engine\RHI\D3D12\Command\CommandContext</Filter>
+      <Filter>ソース ファイル\TomoEngine\Engine\Core\Command\CommandContext</Filter>
     </ClCompile>
     <ClCompile Include="Player.cpp">
       <Filter>ソース ファイル\TomoEngine\Engine\Game\Object</Filter>
@@ -343,10 +352,16 @@
       <Filter>ソース ファイル\TomoEngine\Engine\Asset\Model</Filter>
     </ClCompile>
     <ClCompile Include="CommandListManager.cpp">
-      <Filter>ソース ファイル\TomoEngine\Engine\RHI\D3D12\Command\CommandListManager</Filter>
+      <Filter>ソース ファイル\TomoEngine\Engine\Core\Command\CommandListManager</Filter>
     </ClCompile>
     <ClCompile Include="DescriptorHeap.cpp">
-      <Filter>ソース ファイル\TomoEngine\Engine\RHI\D3D12\Descriptor\Descriptor</Filter>
+      <Filter>ソース ファイル\TomoEngine\Engine\Core\Descriptor</Filter>
+    </ClCompile>
+    <ClCompile Include="DepthBuffer.cpp">
+      <Filter>ソース ファイル\TomoEngine\Engine\Core\DepthBuffer</Filter>
+    </ClCompile>
+    <ClCompile Include="ColorBuffer.cpp">
+      <Filter>ソース ファイル\TomoEngine\Engine\Core\ColorBuffer</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -486,10 +501,10 @@
       <Filter>ソース ファイル\TomoEngine\Engine\Math\Geometry</Filter>
     </ClInclude>
     <ClInclude Include="CommandQueue.h">
-      <Filter>ソース ファイル\TomoEngine\Engine\RHI\D3D12\Command\CommandQueue</Filter>
+      <Filter>ソース ファイル\TomoEngine\Engine\Core\Command\CommandQueue</Filter>
     </ClInclude>
     <ClInclude Include="CommandContext.h">
-      <Filter>ソース ファイル\TomoEngine\Engine\RHI\D3D12\Command\CommandContext</Filter>
+      <Filter>ソース ファイル\TomoEngine\Engine\Core\Command\CommandContext</Filter>
     </ClInclude>
     <ClInclude Include="Player.h">
       <Filter>ソース ファイル\TomoEngine\Engine\Game\Object</Filter>
@@ -504,13 +519,22 @@
       <Filter>ソース ファイル\TomoEngine\Engine\Asset\Model</Filter>
     </ClInclude>
     <ClInclude Include="CommandListManager.h">
-      <Filter>ソース ファイル\TomoEngine\Engine\RHI\D3D12\Command\CommandListManager</Filter>
+      <Filter>ソース ファイル\TomoEngine\Engine\Core\Command\CommandListManager</Filter>
     </ClInclude>
     <ClInclude Include="GpuResource.h">
-      <Filter>ソース ファイル\TomoEngine\Engine\RHI\D3D12\GpuResource</Filter>
+      <Filter>ソース ファイル\TomoEngine\Engine\Core\GpuResource</Filter>
     </ClInclude>
     <ClInclude Include="DescriptorHeap.h">
-      <Filter>ソース ファイル\TomoEngine\Engine\RHI\D3D12\Descriptor\Descriptor</Filter>
+      <Filter>ソース ファイル\TomoEngine\Engine\Core\Descriptor</Filter>
+    </ClInclude>
+    <ClInclude Include="PixelBuffer.h">
+      <Filter>ソース ファイル\TomoEngine\Engine\Core\PixelBuffer</Filter>
+    </ClInclude>
+    <ClInclude Include="DepthBuffer.h">
+      <Filter>ソース ファイル\TomoEngine\Engine\Core\DepthBuffer</Filter>
+    </ClInclude>
+    <ClInclude Include="ColorBuffer.h">
+      <Filter>ソース ファイル\TomoEngine\Engine\Core\ColorBuffer</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

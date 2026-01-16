@@ -83,11 +83,13 @@ if exist "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" copy /y "$(
   <ItemGroup>
     <ClCompile Include="Affine3D.cpp" />
     <ClCompile Include="Camera.cpp" />
+    <ClCompile Include="ColorBuffer.cpp" />
     <ClCompile Include="CommandContext.cpp" />
     <ClCompile Include="CommandListManager.cpp" />
     <ClCompile Include="CommandQueue.cpp" />
     <ClCompile Include="CompileShader.cpp" />
     <ClCompile Include="ConvertString.cpp" />
+    <ClCompile Include="DepthBuffer.cpp" />
     <ClCompile Include="DescriptorHeap.cpp" />
     <ClCompile Include="DescriptorHeapHelper.cpp" />
     <ClCompile Include="DescriptorUtility.cpp" />
@@ -123,6 +125,7 @@ if exist "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" copy /y "$(
   <ItemGroup>
     <ClInclude Include="Affine3D.h" />
     <ClInclude Include="Camera.h" />
+    <ClInclude Include="ColorBuffer.h" />
     <ClInclude Include="CommandContext.h" />
     <ClInclude Include="CommandListManager.h" />
     <ClInclude Include="CommandQueue.h" />
@@ -131,6 +134,7 @@ if exist "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" copy /y "$(
     <ClInclude Include="Core.h" />
     <ClInclude Include="D3D12Includes.h" />
     <ClInclude Include="D3DResourceLeakChecker.h" />
+    <ClInclude Include="DepthBuffer.h" />
     <ClInclude Include="DescriptorHeap.h" />
     <ClInclude Include="DescriptorHeapHelper.h" />
     <ClInclude Include="DescriptorUtility.h" />
@@ -158,6 +162,7 @@ if exist "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" copy /y "$(
     <ClInclude Include="Model.h" />
     <ClInclude Include="ModelData.h" />
     <ClInclude Include="Pad.h" />
+    <ClInclude Include="PixelBuffer.h" />
     <ClInclude Include="Player.h" />
     <ClInclude Include="Renderer.h" />
     <ClInclude Include="RendererDX12.h" />
