@@ -56,6 +56,8 @@ public:
     uint64_t IncrementFence();
     uint64_t GetLastCompletedFenceValue();
 
+    uint64_t GetNextFenceValue() const { return m_nextFenceValue; }
+
     ID3D12CommandQueue* GetD3D12CommandQueue() const { return m_commandQueue.Get(); }
 
 private:

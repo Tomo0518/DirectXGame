@@ -10,7 +10,6 @@
 #include <vector>
 
 #include "InputManager.h"
-#include "wrl.h"
 
 inline InputManager& Input() { return *InputManager::GetInstance(); }
 
@@ -27,11 +26,6 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		Window::GetInstance()->CreateGameWindow(L"CG2");
 
 		// ===============================
-		// 2.グラフィックスコア(Device)初期化
-		// ===============================
-		GraphicsCore::GetInstance()->Initialize();
-
-		// ===============================
 		// device や hwnd を取得して使う
 		// ===============================
 		ID3D12Device* device = GraphicsCore::GetInstance()->GetDevice();	// D3D12デバイス
@@ -39,6 +33,13 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		IDXGIFactory7* dxgiFactory = GraphicsCore::GetInstance()->GetFactory();	// DXGIファクトリー
 		MSG msg{};	// メッセージ
 		HRESULT hr = GraphicsCore::GetInstance()->GetHr();	// 初期化結果
+
+		// ===============================
+		// 2.グラフィックスコア(Device)初期化
+		// ===============================
+		//GraphicsCore::GetInstance()->Initialize();
+		// ウィンドウサイズに合わせてグラフィックスコアを初期化
+		GraphicsCore::GetInstance()->Initialize(hwnd, 1280, 720);
 
 #ifdef _DEBUG
 		Microsoft::WRL::ComPtr<ID3D12Debug1> debugController = nullptr;
