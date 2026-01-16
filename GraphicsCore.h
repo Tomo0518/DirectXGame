@@ -1,12 +1,11 @@
 #pragma once
-// 既存のインクルード
 #include "ResourceObject.h"
 #include <wrl/client.h>
 #include <string>
 #include <dxgi1_6.h>
 #pragma comment(lib, "dxgi.lib")
+#include "DescriptorHeap.h"
 
-// 【変更点】CommandQueue/Context単体ではなくマネージャーをインクルード
 #include "CommandListManager.h"
 
 class GraphicsCore {
@@ -25,6 +24,11 @@ public:
 
     CommandQueue& GetGraphicsQueue() { return commandListManager_.GetGraphicsQueue(); }
 
+    // アロケータへのアクセサ
+    DescriptorAllocator& GetRTVAllocator() { return m_RTVAllocator; }
+    DescriptorAllocator& GetDSVAllocator() { return m_DSVAllocator; }
+    DescriptorAllocator& GetSRVAllocator() { return m_SRVAllocator; } // リソース生成用
+
 private:
     GraphicsCore() = default;
     ~GraphicsCore() = default;
@@ -42,4 +46,9 @@ private:
 #endif
 
     CommandListManager commandListManager_;
+
+	// ディスクリプタアロケータ
+    DescriptorAllocator m_RTVAllocator{ D3D12_DESCRIPTOR_HEAP_TYPE_RTV };
+    DescriptorAllocator m_DSVAllocator{ D3D12_DESCRIPTOR_HEAP_TYPE_DSV };
+    DescriptorAllocator m_SRVAllocator{ D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV };
 };

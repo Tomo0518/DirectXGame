@@ -88,6 +88,7 @@ if exist "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" copy /y "$(
     <ClCompile Include="CommandQueue.cpp" />
     <ClCompile Include="CompileShader.cpp" />
     <ClCompile Include="ConvertString.cpp" />
+    <ClCompile Include="DescriptorHeap.cpp" />
     <ClCompile Include="DescriptorHeapHelper.cpp" />
     <ClCompile Include="DescriptorUtility.cpp" />
     <ClCompile Include="externals\imgui\imgui.cpp" />
@@ -130,6 +131,7 @@ if exist "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" copy /y "$(
     <ClInclude Include="Core.h" />
     <ClInclude Include="D3D12Includes.h" />
     <ClInclude Include="D3DResourceLeakChecker.h" />
+    <ClInclude Include="DescriptorHeap.h" />
     <ClInclude Include="DescriptorHeapHelper.h" />
     <ClInclude Include="DescriptorUtility.h" />
     <ClInclude Include="DirectionalLight.h" />
