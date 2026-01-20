@@ -37,20 +37,20 @@ ModelData LoadObjFile(const std::string& directoryPath, const std::string& fileN
 			Vector4 position;
 			s >> position.x >> position.y >> position.z;
 			position.w = 1.0f; // w成分は1.0fに設定
-			//position.x *= -1.0f;
+			position.x *= -1.0f;
 			positions.push_back(position);
 
 		}
 		else if (identifier == "vt") { // UV座標
 			Vector2 texcoord;
 			s >> texcoord.x >> texcoord.y;
-			//texcoord.y = 1.0f - texcoord.y;
+			texcoord.y = 1.0f - texcoord.y;
 			texcoords.push_back(texcoord);
 		}
 		else if (identifier == "vn") { // 法線ベクトル
 			Vector3 normal;
 			s >> normal.x >> normal.y >> normal.z;
-			//normal.x *= -1.0f;
+			normal.x *= -1.0f;
 			normals.push_back(normal);
 		}
 		else if (identifier == "f") { // 面情報
@@ -78,9 +78,9 @@ ModelData LoadObjFile(const std::string& directoryPath, const std::string& fileN
 
 			}
 
-			modelData.vertices.push_back(triangle[0]);
-			modelData.vertices.push_back(triangle[1]);
 			modelData.vertices.push_back(triangle[2]);
+			modelData.vertices.push_back(triangle[1]);
+			modelData.vertices.push_back(triangle[0]);
 			
 		}
 		else if (identifier == "mtllib") {

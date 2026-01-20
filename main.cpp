@@ -26,6 +26,11 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		Window::GetInstance()->CreateGameWindow(L"CG2");
 
 		// ===============================
+		// 2.グラフィックスコア(Device)初期化
+		// ===============================
+		GraphicsCore::GetInstance()->Initialize();
+
+		// ===============================
 		// device や hwnd を取得して使う
 		// ===============================
 		ID3D12Device* device = GraphicsCore::GetInstance()->GetDevice();	// D3D12デバイス
@@ -34,12 +39,8 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		MSG msg{};	// メッセージ
 		HRESULT hr = GraphicsCore::GetInstance()->GetHr();	// 初期化結果
 
-		// ===============================
-		// 2.グラフィックスコア(Device)初期化
-		// ===============================
-		//GraphicsCore::GetInstance()->Initialize();
 		// ウィンドウサイズに合わせてグラフィックスコアを初期化
-		GraphicsCore::GetInstance()->Initialize(hwnd, 1280, 720);
+		//GraphicsCore::GetInstance()->Initialize(hwnd, 1280, 720);
 
 #ifdef _DEBUG
 		Microsoft::WRL::ComPtr<ID3D12Debug1> debugController = nullptr;
@@ -492,7 +493,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		// Objファイル形式で読み込むオブジェクト
 		// ==================================
 		// !\モデル読み込み
-		ModelData objModelData = LoadObjFile("resources", "plane.obj");
+		ModelData objModelData = LoadObjFile("resources/cube", "cube.obj");
 
 		const UINT objVertexCount = static_cast<UINT>(objModelData.vertices.size());
 		// 頂点リソースを作る
@@ -617,7 +618,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
 		// 二枚目のTextureを読んで転送する（Copy命令をコマンドに積む→実行→完了待ち）
 		//DirectX::ScratchImage mipImages2 = LoadTexture(objModelData.material.textureFilePath);
-		DirectX::ScratchImage mipImages2 = LoadTexture("resources/uvChecker.png");
+		DirectX::ScratchImage mipImages2 = LoadTexture(objModelData.material.textureFilePath);
 		const DirectX::TexMetadata& metadata2 = mipImages2.GetMetadata();
 
 		Microsoft::WRL::ComPtr<ID3D12Resource> textureResource2 = CreateTextureResource(device, metadata2);
@@ -855,10 +856,10 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
 
 		D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc2 = {};
-		srvDesc2.Format = metadata.format;
+		srvDesc2.Format = metadata2.format;
 		srvDesc2.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
 		srvDesc2.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D; // 2Dテクスチャ
-		srvDesc2.Texture2D.MipLevels = static_cast<UINT>(metadata.mipLevels);
+		srvDesc2.Texture2D.MipLevels = static_cast<UINT>(metadata2.mipLevels);
 
 		// SRVを作成するDescriptorHeapの場所を決める
 		D3D12_CPU_DESCRIPTOR_HANDLE textureSrvHandleCPU2 = GetCPUDescriptorHandle(srvDescriptorHeap.Get(), descriptorSizeSRV, 2);
