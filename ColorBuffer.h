@@ -38,6 +38,8 @@ public:
         m_ClearColor[3] = a;
     }
 
+	void SetUsageState(D3D12_RESOURCE_STATES state) { m_UsageState = state; }
+
 protected:
     float m_ClearColor[4];  // RGBA (0.0f～1.0f)
     DescriptorHandle m_RTVHandle;

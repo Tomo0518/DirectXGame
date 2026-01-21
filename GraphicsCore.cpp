@@ -228,6 +228,8 @@ void GraphicsCore::Initialize(HWND windowHandle, int width, int height) {
 
 		// 画面クリア時の色
 		m_DisplayPlane_[i].SetClearColor(0.39f, 0.58f, 0.93f, 1.0f);
+
+		m_DisplayPlane_[i].SetUsageState(D3D12_RESOURCE_STATE_PRESENT);
 	}
 
 	// 深度バッファ作成

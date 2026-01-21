@@ -190,13 +190,38 @@ void CommandContext::TransitionResource(GpuResource& resource, D3D12_RESOURCE_ST
 
     if (oldState != newState)
     {
+        // 既に同じリソースのバリアがバッファにあるか確認
+        ID3D12Resource* pResource = resource.GetResource();
+        for (uint32_t i = 0; i < m_numBarriersToFlush; ++i)
+        {
+            if (m_resourceBarrierBuffer[i].Type == D3D12_RESOURCE_BARRIER_TYPE_TRANSITION &&
+                m_resourceBarrierBuffer[i].Transition.pResource == pResource)
+            {
+                // 既存のバリアを更新（StateBefore は最初の状態のまま、StateAfter のみ更新）
+                m_resourceBarrierBuffer[i].Transition.StateAfter = newState;
+                resource.m_UsageState = newState;
+
+                // StateBeforeとStateAfterが同じになった場合はバリアを削除
+                if (m_resourceBarrierBuffer[i].Transition.StateBefore == newState)
+                {
+                    // 最後のバリアと入れ替えて削除
+                    if (i < m_numBarriersToFlush - 1)
+                    {
+                        m_resourceBarrierBuffer[i] = m_resourceBarrierBuffer[m_numBarriersToFlush - 1];
+                    }
+                    m_numBarriersToFlush--;
+                }
+                return; // 重複を防ぐため早期リターン
+            }
+        }
+
         assert(m_numBarriersToFlush < MAX_RESOURCE_BARRIERS);
 
         D3D12_RESOURCE_BARRIER& barrierDesc = m_resourceBarrierBuffer[m_numBarriersToFlush++];
 
         barrierDesc.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
         barrierDesc.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
-        barrierDesc.Transition.pResource = resource.GetResource();
+        barrierDesc.Transition.pResource = pResource;
         barrierDesc.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
         barrierDesc.Transition.StateBefore = oldState;
         barrierDesc.Transition.StateAfter = newState;
