@@ -53,8 +53,18 @@ public:
     // 同期・待機
     void WaitForFence(uint64_t fenceValue);
     bool IsFenceComplete(uint64_t fenceValue);
-    uint64_t IncrementFence();
-    uint64_t GetLastCompletedFenceValue();
+    uint64_t IncrementFence() {
+        std::lock_guard<std::mutex> lock(m_fenceMutex);
+		return m_nextFenceValue++;
+    }
+
+    uint64_t GetLastCompletedFenceValue() {
+        std::lock_guard<std::mutex> lock(m_fenceMutex);
+		return m_lastCompletedFenceValue;
+    }
+
+	// GPUの処理完了を待機する
+	void WaitForIdle() { WaitForFence(IncrementFence()); }
 
     uint64_t GetNextFenceValue() const { return m_nextFenceValue; }
 

@@ -89,7 +89,7 @@ void GraphicsCore::Initialize() {
 #endif
 }
 
-void GraphicsCore::Initialize(void* windowHandle, int width, int height) {
+void GraphicsCore::Initialize(HWND windowHandle, int width, int height) {
 #ifdef _DEBUG
 
 	// ================================
@@ -180,9 +180,9 @@ void GraphicsCore::Initialize(void* windowHandle, int width, int height) {
 	// 4. マネージャー・アロケータの初期化
 	// ====================================
 	commandListManager_.Create(device_.Get());
-	m_RTVAllocator.Create(device_.Get());
-	m_DSVAllocator.Create(device_.Get());
-	m_SRVAllocator.Create(device_.Get()); // これはShaderVisible=trueにする拡張が必要かも
+	m_RTVAllocator_.Create(device_.Get());
+	m_DSVAllocator_.Create(device_.Get());
+	m_SRVAllocator_.Create(device_.Get());
 
 	// ===================================
 	// 5. スワップチェーンの作成
@@ -204,86 +204,93 @@ void GraphicsCore::Initialize(void* windowHandle, int width, int height) {
 	Microsoft::WRL::ComPtr<IDXGISwapChain1> swapChain1;
 
 	// コマンドキューを渡す際、CommandQueueクラスから生ポインタを取り出す
-	// ※GetD3D12CommandQueue() が必要です
-	HRESULT hr = dxgiFactory_->CreateSwapChainForHwnd(
+	hr_ = dxgiFactory_->CreateSwapChainForHwnd(
 		commandListManager_.GetGraphicsQueue().GetD3D12CommandQueue(),
 		static_cast<HWND>(windowHandle),
 		&swapChainDesc,
 		nullptr,
 		nullptr,
 		&swapChain1);
-	assert(SUCCEEDED(hr));
+	assert(SUCCEEDED(hr_));
 
-	hr = swapChain1.As(&m_SwapChain);
-	assert(SUCCEEDED(hr));
+	hr_ = swapChain1.As(&m_SwapChain_);
+	assert(SUCCEEDED(hr_));
 
 	// =============================================================
 	// 6. バックバッファと深度バッファの初期化
 	// =============================================================
-	for (uint32_t i = 0; i < BufferCount; ++i)
-	{
+	for (uint32_t i = 0; i < BufferCount; ++i) {
 		Microsoft::WRL::ComPtr<ID3D12Resource> backBuffer;
-		m_SwapChain->GetBuffer(i, IID_PPV_ARGS(&backBuffer));
+		m_SwapChain_->GetBuffer(i, IID_PPV_ARGS(&backBuffer));
 
-		// ここでColorBufferにラップする！
-		m_DisplayPlane[i].CreateFromSwapChain(L"Primary SwapChain Buffer", backBuffer.Get());
+		// ColorBufferにラップする
+		m_DisplayPlane_[i].CreateFromSwapChain(L"Primary SwapChain Buffer", backBuffer.Get());
 
-		// クリアカラーをセット（コーンフラワーブルー）
-		m_DisplayPlane[i].SetClearColor(0.39f, 0.58f, 0.93f, 1.0f);
+		// 画面クリア時の色
+		m_DisplayPlane_[i].SetClearColor(0.39f, 0.58f, 0.93f, 1.0f);
 	}
 
 	// 深度バッファ作成
-	m_DepthBuffer.Create(L"Scene Depth Buffer", width, height, DXGI_FORMAT_D32_FLOAT);
+	m_DepthBuffer_.Create(L"Scene Depth Buffer", width, height, DXGI_FORMAT_D32_FLOAT);
+}
+
+void GraphicsCore::Present() {
+
+	// ================================
+	// 1. スワップチェーンをフリップ
+	// ================================
+	HRESULT hr = m_SwapChain_->Present(1, 0);
+	if (FAILED(hr)) {
+		if (hr == DXGI_ERROR_DEVICE_REMOVED || hr == DXGI_ERROR_DEVICE_RESET) {
+			// デバイスロスト時の処理が必要だが、現状はアサート
+			assert(false && "Device Lost");
+		}
+	}
+	// ===============================================
+	// 2. コマンドキューにシグナルを発行し、CPU側で待機する
+	// ==============================================
+    // ※ 簡易実装として「CPUがGPUの完了を待つ」スタイルにする。
+    //    これで安全にダブルバッファリングが回る。
+    //    将来的には「前のフレームの完了を待つ」形にして並列性を上げる。
+    
+	CommandQueue& graphicsQueue = commandListManager_.GetGraphicsQueue();
+	m_CurrentFenceValue_ = graphicsQueue.IncrementFence(); // 次のフェンス値をセット
+
+	// CPUで待機（GPUがここまで完了するのを待つ）
+	graphicsQueue.WaitForFence(m_CurrentFenceValue_);
+
+	// 3. 次のバックバッファ番号を取得
+	m_CurrentBackBufferIndex_ = m_SwapChain_->GetCurrentBackBufferIndex();
 }
 
 void GraphicsCore::Shutdown() {
+	// GPUの処理完了を待機 (アイドル状態にする)
+	commandListManager_.GetGraphicsQueue().WaitForIdle();
+
+	// リソースの破棄
+	// ComPtrは自動解放されるが、明示的に行うことで順序を制御できる
+	for (auto& buffer : m_DisplayPlane_) buffer.Destroy();
+	m_DepthBuffer_.Destroy();
+
+	m_RTVAllocator_.Shutdown();
+	m_DSVAllocator_.Shutdown();
+	m_SRVAllocator_.Shutdown();
+
+	commandListManager_.Shutdown();
+
+	m_SwapChain_.Reset();
+	dxgiFactory_.Reset();
+
 #ifdef _DEBUG
+	// リソースリークチェック
+	{
+		Microsoft::WRL::ComPtr<ID3D12DebugDevice> debugDevice;
+		if (SUCCEEDED(device_.As(&debugDevice))) {
+			debugDevice->ReportLiveDeviceObjects(D3D12_RLDO_DETAIL | D3D12_RLDO_IGNORE_INTERNAL);
+		}
+	}
 	infoQueue_.Reset();
 	debugController_.Reset();
 #endif
 	device_.Reset();
-	dxgiFactory_.Reset();
 }
-
-//void GraphicsCore::Shutdown()
-//{
-//	// 1. GPUの処理完了を待機
-//	// これをしないと、まだ使用中のリソースを破壊してクラッシュする可能性があります
-//	// ※CommandQueueに「アイドル待機」機能があればそれを呼びますが、
-//	//   簡易的には直前のフレームのフェンス完了を待つことで代用します。
-//	//   （本当は CommandListManager::IdleGPU() のような関数を作って呼ぶのがベスト）
-//	commandListManager_.GetGraphicsQueue().WaitForFence(commandListManager_.GetGraphicsQueue().GetNextFenceValue() - 1);
-//
-//	// 2. リソースの破棄 (GPUが触らなくなったので安全)
-//	for (auto& buffer : m_DisplayPlane) buffer.Destroy();
-//	m_DepthBuffer.Destroy();
-//
-//	// 3. アロケータの破棄
-//	m_RTVAllocator.Shutdown();
-//	m_DSVAllocator.Shutdown();
-//	m_SRVAllocator.Shutdown();
-//
-//	// 4. スワップチェーンの破棄 (Queueより先に消す)
-//	m_SwapChain.Reset();
-//
-//	// 5. コマンドマネージャの破棄 (Queueの解放)
-//	commandListManager_.Shutdown();
-//
-//	// 6. デバイス・ファクトリーの破棄
-//	device_.Reset();
-//	dxgiFactory_.Reset();
-//
-//#ifdef _DEBUG
-//	// 7. リソースリークの報告 (これができるとプロっぽい！)
-//	// device_などがResetされた後に残っているオブジェクトがあれば出力ウィンドウに出ます
-//	{
-//		Microsoft::WRL::ComPtr<ID3D12DebugDevice> debugDevice;
-//		if (SUCCEEDED(debugController_.As(&debugDevice))) {
-//			debugDevice->ReportLiveDeviceObjects(D3D12_RLDO_DETAIL | D3D12_RLDO_IGNORE_INTERNAL);
-//		}
-//	}
-//
-//	infoQueue_.Reset();
-//	debugController_.Reset();
-//#endif
-//}
