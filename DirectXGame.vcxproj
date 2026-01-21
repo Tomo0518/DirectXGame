@@ -102,6 +102,7 @@ if exist "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" copy /y "$(
     <ClCompile Include="externals\imgui\imgui_widgets.cpp" />
     <ClCompile Include="Game.cpp" />
     <ClCompile Include="GraphicsCore.cpp" />
+    <ClCompile Include="GraphicsPipeline.cpp" />
     <ClCompile Include="InputManager.cpp" />
     <ClCompile Include="LoadMaterialTemplateFile.cpp" />
     <ClCompile Include="LoadObjFile.cpp" />
@@ -115,6 +116,7 @@ if exist "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" copy /y "$(
     <ClCompile Include="RendererDX12.cpp" />
     <ClCompile Include="ResourceObject.cpp" />
     <ClCompile Include="ResourcesUtility.cpp" />
+    <ClCompile Include="Sphere.cpp" />
     <ClCompile Include="TextureManager.cpp" />
     <ClCompile Include="TomoEngine.cpp" />
     <ClCompile Include="Transform.cpp" />
@@ -151,6 +153,7 @@ if exist "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" copy /y "$(
     <ClInclude Include="Game.h" />
     <ClInclude Include="GpuResource.h" />
     <ClInclude Include="GraphicsCore.h" />
+    <ClInclude Include="GraphicsPipeline.h" />
     <ClInclude Include="InputManager.h" />
     <ClInclude Include="LoadMaterialTemplateFile.h" />
     <ClInclude Include="LoadObjFile.h" />

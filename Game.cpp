@@ -5,138 +5,23 @@
 #include <numbers>
 #include <format>
 #include "TextureManager.h"
+#include "Sphere.h"
 
 // インライン関数などのヘルパーも必要ならここに移動、あるいはUtilityへ
 inline InputManager& Input() { return *InputManager::GetInstance(); }
 
 void Game::Initialize() {
-    ID3D12Device* device = GraphicsCore::GetInstance()->GetDevice();
-    // TextureManager初期化
+	ID3D12Device* device = GraphicsCore::GetInstance()->GetDevice();
 
-    // ==================================
-    // 1. DXC (Shader Compiler) の初期化
-    // ==================================
-    HRESULT hr = DxcCreateInstance(CLSID_DxcUtils, IID_PPV_ARGS(&m_dxcUtils));
-    assert(SUCCEEDED(hr));
-    hr = DxcCreateInstance(CLSID_DxcCompiler, IID_PPV_ARGS(&m_dxcCompiler));
-    assert(SUCCEEDED(hr));
-    hr = m_dxcUtils->CreateDefaultIncludeHandler(&m_includeHandler);
-    assert(SUCCEEDED(hr));
+	// ==================================
+	// 1. グラフィックスパイプライン初期化
+	// ==================================
+	m_pipeline = std::make_unique<GraphicsPipeline>();
+	m_pipeline->Initialize();
 
-    // ==================================
-    // 2. RootSignature の生成
-    // ==================================
-    D3D12_ROOT_SIGNATURE_DESC descriptionRootSignature = {};
-    descriptionRootSignature.Flags = D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT;
-
-    // テクスチャ用サンプラー設定
-    D3D12_STATIC_SAMPLER_DESC staticSamplers[1] = {};
-    staticSamplers[0].Filter = D3D12_FILTER_MIN_MAG_MIP_LINEAR;
-    staticSamplers[0].AddressU = D3D12_TEXTURE_ADDRESS_MODE_WRAP;
-    staticSamplers[0].AddressV = D3D12_TEXTURE_ADDRESS_MODE_WRAP;
-    staticSamplers[0].AddressW = D3D12_TEXTURE_ADDRESS_MODE_WRAP;
-    staticSamplers[0].ComparisonFunc = D3D12_COMPARISON_FUNC_NEVER;
-    staticSamplers[0].MaxLOD = D3D12_FLOAT32_MAX;
-    staticSamplers[0].ShaderRegister = 0;
-    staticSamplers[0].ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;
-    descriptionRootSignature.pStaticSamplers = staticSamplers;
-    descriptionRootSignature.NumStaticSamplers = _countof(staticSamplers);
-
-    // ルートパラメータ設定
-    D3D12_DESCRIPTOR_RANGE descriptorRange[1] = {};
-    descriptorRange[0].BaseShaderRegister = 0;
-    descriptorRange[0].NumDescriptors = 1;
-    descriptorRange[0].RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
-    descriptorRange[0].OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
-
-    D3D12_ROOT_PARAMETER rootParameters[4] = {};
-    rootParameters[0].ParameterType = D3D12_ROOT_PARAMETER_TYPE_CBV; // Material
-    rootParameters[0].ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;
-    rootParameters[0].Descriptor.ShaderRegister = 0;
-
-    rootParameters[1].ParameterType = D3D12_ROOT_PARAMETER_TYPE_CBV; // WVP
-    rootParameters[1].ShaderVisibility = D3D12_SHADER_VISIBILITY_VERTEX;
-    rootParameters[1].Descriptor.ShaderRegister = 0;
-
-    rootParameters[2].ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE; // Texture
-    rootParameters[2].ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;
-    rootParameters[2].DescriptorTable.pDescriptorRanges = descriptorRange;
-    rootParameters[2].DescriptorTable.NumDescriptorRanges = _countof(descriptorRange);
-
-    rootParameters[3].ParameterType = D3D12_ROOT_PARAMETER_TYPE_CBV; // Light
-    rootParameters[3].ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;
-    rootParameters[3].Descriptor.ShaderRegister = 1;
-
-    descriptionRootSignature.pParameters = rootParameters;
-    descriptionRootSignature.NumParameters = _countof(rootParameters);
-
-    // シリアライズと生成
-    Microsoft::WRL::ComPtr<ID3DBlob> signatureBlob = nullptr;
-    Microsoft::WRL::ComPtr<ID3DBlob> errorBlob = nullptr;
-    hr = D3D12SerializeRootSignature(&descriptionRootSignature, D3D_ROOT_SIGNATURE_VERSION_1, &signatureBlob, &errorBlob);
-    if (FAILED(hr)) {
-        Log(ConvertString(static_cast<const char*>(errorBlob->GetBufferPointer())));
-        assert(false);
-    }
-    hr = device->CreateRootSignature(0, signatureBlob->GetBufferPointer(), signatureBlob->GetBufferSize(), IID_PPV_ARGS(&m_RootSignature));
-    assert(SUCCEEDED(hr));
-
-    // ==================================
-    // 3. InputLayout / PSO 生成
-    // ==================================
-    D3D12_INPUT_ELEMENT_DESC inputElementDescs[3] = {};
-    inputElementDescs[0].SemanticName = "POSITION"; inputElementDescs[0].SemanticIndex = 0; inputElementDescs[0].Format = DXGI_FORMAT_R32G32B32A32_FLOAT; inputElementDescs[0].AlignedByteOffset = D3D12_APPEND_ALIGNED_ELEMENT;
-    inputElementDescs[1].SemanticName = "TEXCOORD"; inputElementDescs[1].SemanticIndex = 0; inputElementDescs[1].Format = DXGI_FORMAT_R32G32_FLOAT; inputElementDescs[1].AlignedByteOffset = D3D12_APPEND_ALIGNED_ELEMENT;
-    inputElementDescs[2].SemanticName = "NORMAL";   inputElementDescs[2].SemanticIndex = 0; inputElementDescs[2].Format = DXGI_FORMAT_R32G32B32_FLOAT;    inputElementDescs[2].AlignedByteOffset = D3D12_APPEND_ALIGNED_ELEMENT;
-
-    D3D12_INPUT_LAYOUT_DESC inputLayoutDesc = {};
-    inputLayoutDesc.pInputElementDescs = inputElementDescs;
-    inputLayoutDesc.NumElements = _countof(inputElementDescs);
-
-    // BlendState
-    D3D12_BLEND_DESC blendDesc = {};
-    blendDesc.RenderTarget[0].RenderTargetWriteMask = D3D12_COLOR_WRITE_ENABLE_ALL;
-    blendDesc.RenderTarget[0].BlendEnable = TRUE;
-    blendDesc.RenderTarget[0].SrcBlend = D3D12_BLEND_SRC_ALPHA;
-    blendDesc.RenderTarget[0].BlendOp = D3D12_BLEND_OP_ADD;
-    blendDesc.RenderTarget[0].DestBlend = D3D12_BLEND_INV_SRC_ALPHA;
-    blendDesc.RenderTarget[0].SrcBlendAlpha = D3D12_BLEND_ONE;
-    blendDesc.RenderTarget[0].BlendOpAlpha = D3D12_BLEND_OP_ADD;
-    blendDesc.RenderTarget[0].DestBlendAlpha = D3D12_BLEND_ZERO;
-
-    // RasterizerState
-    D3D12_RASTERIZER_DESC rasterizerDesc = {};
-    rasterizerDesc.CullMode = D3D12_CULL_MODE_BACK;
-    rasterizerDesc.FillMode = D3D12_FILL_MODE_SOLID;
-
-    // Shader Compile
-    Microsoft::WRL::ComPtr<IDxcBlob> vertexShaderBlob = CompileShader(L"Object3D.VS.hlsl", L"vs_6_0", m_dxcUtils.Get(), m_dxcCompiler.Get(), m_includeHandler.Get());
-    Microsoft::WRL::ComPtr<IDxcBlob> pixelShaderBlob = CompileShader(L"Object3D.PS.hlsl", L"ps_6_0", m_dxcUtils.Get(), m_dxcCompiler.Get(), m_includeHandler.Get());
-
-    // PSO構築
-    D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc = {};
-    psoDesc.pRootSignature = m_RootSignature.Get();
-    psoDesc.InputLayout = inputLayoutDesc;
-    psoDesc.VS = { vertexShaderBlob->GetBufferPointer(), vertexShaderBlob->GetBufferSize() };
-    psoDesc.PS = { pixelShaderBlob->GetBufferPointer(), pixelShaderBlob->GetBufferSize() };
-    psoDesc.BlendState = blendDesc;
-    psoDesc.RasterizerState = rasterizerDesc;
-    psoDesc.NumRenderTargets = 1;
-    psoDesc.RTVFormats[0] = DXGI_FORMAT_R8G8B8A8_UNORM;
-    psoDesc.DepthStencilState.DepthEnable = true;
-    psoDesc.DepthStencilState.DepthWriteMask = D3D12_DEPTH_WRITE_MASK_ALL;
-    psoDesc.DepthStencilState.DepthFunc = D3D12_COMPARISON_FUNC_LESS_EQUAL;
-    psoDesc.DSVFormat = DXGI_FORMAT_D32_FLOAT;
-    psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
-    psoDesc.SampleDesc.Count = 1;
-    psoDesc.SampleMask = D3D12_DEFAULT_SAMPLE_MASK;
-
-    hr = device->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&m_PipelineState));
-    assert(SUCCEEDED(hr));
-
-    // ==================================
-    // 4. 各種定数バッファ・リソース生成
-    // ==================================
+	// ==================================
+	// 2. 汎用リソース生成 (定数バッファ等)
+	// ==================================
     // WVPリソース
     m_wvpResource = CreateBufferResource(device, Align256(sizeof(TransformationMatrix)));
     TransformationMatrix* wvpData = nullptr;
@@ -183,95 +68,9 @@ void Game::Initialize() {
     // ==================================
     // Sphere用のResourceの生成
     // ==================================
-    // 分割数
-    const uint32_t kSubdivision = 16;
-    // 頂点数 (分割数 * 分割数 * 6頂点)
-    const uint32_t kSphereVertexCount = kSubdivision * kSubdivision * 6;
-
-
-    // 頂点リソースの作成
-    ResourceObject vertexResourceSphere = CreateBufferResource(device, sizeof(VertexData) * kSphereVertexCount);
-
-    // 頂点バッファビューを作成する
-    D3D12_VERTEX_BUFFER_VIEW vertexBufferViewSphere = {};
-    vertexBufferViewSphere.BufferLocation = vertexResourceSphere.Get()->GetGPUVirtualAddress();
-    vertexBufferViewSphere.SizeInBytes = sizeof(VertexData) * kSphereVertexCount;
-    vertexBufferViewSphere.StrideInBytes = sizeof(VertexData);
-
-    // 頂点データを書き込む
-    VertexData* vertexDataSphere = nullptr;
-    vertexResourceSphere.Get()->Map(0, nullptr, reinterpret_cast<void**>(&vertexDataSphere));
-
-    // 経度分割1つ分の角度 phi
-    const float kLonEvery = 2.0f * std::numbers::pi_v<float> / float(kSubdivision);
-    // 緯度分割1つ分の角度 theta
-    const float kLatEvery = std::numbers::pi_v<float> / float(kSubdivision);
-
-    // 緯度の方向に分割
-    for (uint32_t latIndex = 0; latIndex < kSubdivision; ++latIndex) {
-        float lat = -std::numbers::pi_v<float> / 2.0f + kLatEvery * latIndex; // theta
-
-        // 経度の方向に分割
-        for (uint32_t lonIndex = 0; lonIndex < kSubdivision; ++lonIndex) {
-            float lon = lonIndex * kLonEvery; // phi
-
-            // 書き込む頂点の先頭インデックス
-            uint32_t start = (latIndex * kSubdivision + lonIndex) * 6;
-
-            // 基準点a, b, c, dの計算に必要な角度
-            float lat_b = lat + kLatEvery;
-            float lon_c = lon + kLonEvery;
-
-            // UV座標の計算用
-            float u_curr = float(lonIndex) / float(kSubdivision);
-            float u_next = float(lonIndex + 1) / float(kSubdivision);
-            float v_curr = 1.0f - float(latIndex) / float(kSubdivision);
-            float v_next = 1.0f - float(latIndex + 1) / float(kSubdivision);
-
-            // 頂点a (左下)
-            vertexDataSphere[start].position.x = std::cos(lat) * std::cos(lon);
-            vertexDataSphere[start].position.y = std::sin(lat);
-            vertexDataSphere[start].position.z = std::cos(lat) * std::sin(lon);
-            vertexDataSphere[start].position.w = 1.0f;
-            vertexDataSphere[start].texcoord = { u_curr, v_curr };
-            vertexDataSphere[start].normal = { vertexDataSphere[start].position.x, vertexDataSphere[start].position.y, vertexDataSphere[start].position.z };
-
-            // 頂点b (左上)
-            vertexDataSphere[start + 1].position.x = std::cos(lat_b) * std::cos(lon);
-            vertexDataSphere[start + 1].position.y = std::sin(lat_b);
-            vertexDataSphere[start + 1].position.z = std::cos(lat_b) * std::sin(lon);
-            vertexDataSphere[start + 1].position.w = 1.0f;
-            vertexDataSphere[start + 1].texcoord = { u_curr, v_next };
-            vertexDataSphere[start + 1].normal = { vertexDataSphere[start + 1].position.x, vertexDataSphere[start + 1].position.y, vertexDataSphere[start + 1].position.z };
-
-            // 頂点c (右下)
-            vertexDataSphere[start + 2].position.x = std::cos(lat) * std::cos(lon_c);
-            vertexDataSphere[start + 2].position.y = std::sin(lat);
-            vertexDataSphere[start + 2].position.z = std::cos(lat) * std::sin(lon_c);
-            vertexDataSphere[start + 2].position.w = 1.0f;
-            vertexDataSphere[start + 2].texcoord = { u_next, v_curr };
-            vertexDataSphere[start + 2].normal = { vertexDataSphere[start + 2].position.x, vertexDataSphere[start + 2].position.y, vertexDataSphere[start + 2].position.z };
-
-            // 頂点d (右上) - 2枚目の三角形用
-            vertexDataSphere[start + 3] = vertexDataSphere[start + 1]; // b
-            vertexDataSphere[start + 4].position.x = std::cos(lat_b) * std::cos(lon_c);
-            vertexDataSphere[start + 4].position.y = std::sin(lat_b);
-            vertexDataSphere[start + 4].position.z = std::cos(lat_b) * std::sin(lon_c);
-            vertexDataSphere[start + 4].position.w = 1.0f;
-            vertexDataSphere[start + 4].texcoord = { u_next, v_next };
-            vertexDataSphere[start + 4].normal = { vertexDataSphere[start + 4].position.x, vertexDataSphere[start + 4].position.y, vertexDataSphere[start + 4].position.z };
-            vertexDataSphere[start + 5] = vertexDataSphere[start + 2]; // c
-        }
-    }
-    // 書き込み終了
-    vertexResourceSphere.Get()->Unmap(0, nullptr);
-
-    // Sphere用のTransformationMatrix用のリソースを作る
-    ResourceObject wvpResourceSphere = CreateBufferResource(device, Align256(sizeof(TransformationMatrix)));
-    TransformationMatrix* wvpDataSphere = nullptr;
-    wvpResourceSphere.Get()->Map(0, nullptr, reinterpret_cast<void**>(&wvpDataSphere));
-    wvpDataSphere->WVP = Matrix4x4::MakeIdentity4x4();
-    wvpDataSphere->World = Matrix4x4::MakeIdentity4x4();
+    // Sphere (あの長い頂点計算ループが消滅！)
+    //m_sphere = std::make_unique<Sphere>();
+    //m_sphere->Initialize();
 
     // ==================================
     // 5. SRVヒープ & ImGui 初期化
@@ -398,10 +197,8 @@ void Game::Render() {
 	commandList->RSSetViewports(1, &viewport);
 	commandList->RSSetScissorRects(1, &scissor);
 
-	// パイプライン設定
-	commandList->SetGraphicsRootSignature(m_RootSignature.Get());
-	commandList->SetPipelineState(m_PipelineState.Get());
-	commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+	// パイプライン設定 
+	m_pipeline->SetState(commandList);
 
 	// ヒープ設定 (ImGui用含む)
     ID3D12DescriptorHeap* heaps[] = { m_srvHeap.GetHeap() };

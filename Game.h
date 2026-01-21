@@ -2,10 +2,12 @@
 #include "TomoEngine.h"
 #include <memory>
 #include <vector>
+#include "GraphicsPipeline.h"
 #include "Model.h"
 
 // 前方宣言
 class GraphicsContext;
+class Sphere;
 
 class Game {
 public:
@@ -26,14 +28,9 @@ public:
     void Shutdown();
 
 private:
-    // ルートシグネチャ・PSO
-    Microsoft::WRL::ComPtr<ID3D12RootSignature> m_RootSignature;
-    Microsoft::WRL::ComPtr<ID3D12PipelineState> m_PipelineState;
 
-    // シェーダーコンパイラ関連 (Gameクラスで保持またはローカル化)
-    Microsoft::WRL::ComPtr<IDxcUtils> m_dxcUtils;
-    Microsoft::WRL::ComPtr<IDxcCompiler3> m_dxcCompiler;
-    Microsoft::WRL::ComPtr<IDxcIncludeHandler> m_includeHandler;
+	// グラフィックスパイプライン
+    std::unique_ptr<GraphicsPipeline> m_pipeline;
 
     // テクスチャリソース
     D3D12_GPU_DESCRIPTOR_HANDLE m_uvCheckerGpuHandle = {};
@@ -62,22 +59,30 @@ private:
     D3D12_VERTEX_BUFFER_VIEW m_vertexBufferViewSphere{};
     D3D12_INDEX_BUFFER_VIEW m_indexBufferViewSprite{};
 
+
+    // ===================================
+	// オブジェクト
+	// ===================================
+    Model* m_modelCube_ = nullptr;
+
+    //std::unique_ptr<Sphere> m_sphere;
+
+    DirectionalLight* lightData_{};
+
+	// ===================================
     // ゲーム内変数
+	// ===================================
     Transform m_transform{ {1.0f,1.0f,1.0f},{0.0f,0.0f,0.0f},{0.0f,0.0f,0.0f} };
     Transform m_transformSprite{ {1.0f,1.0f,1.0f},{0.0f,0.0f,0.0f},{0.0f,0.0f,0.0f} };
     Transform m_cameraTransform{ {1.0f,1.0f,1.0f},{0.0f,0.0f,0.0f},{0.0f,0.0f,-5.0f} };
     Transform m_uvTransformSprite{ {1.0f,1.0f,1.0f},{0.0f,0.0f,0.0f},{0.0f,0.0f,0.0f} };
 
-    Sphere m_sphere;
     bool m_useMonsterBall = true;
     float m_materialColor[4] = { 1.0f,1.0f,1.0f,1.0f };
 
     // モデルデータ
     //ModelData m_objModelData;
 
-	Model* m_modelCube_ = nullptr;
-
-    DirectionalLight *lightData_{};
 
     // ImGui用ディスクリプタヒープ (GraphicsCore側で管理するまでの暫定)
     //Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> m_srvDescriptorHeap;

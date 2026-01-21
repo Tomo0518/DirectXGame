@@ -369,6 +369,12 @@
     <ClCompile Include="TextureManager.cpp">
       <Filter>ソース ファイル\TomoEngine\Engine\Core\TextureManager</Filter>
     </ClCompile>
+    <ClCompile Include="Sphere.cpp">
+      <Filter>ソース ファイル\TomoEngine\Engine\Math\Geometry</Filter>
+    </ClCompile>
+    <ClCompile Include="GraphicsPipeline.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Logger.h">
@@ -544,6 +550,9 @@
     </ClInclude>
     <ClInclude Include="TextureManager.h">
       <Filter>ソース ファイル\TomoEngine\Engine\Core\TextureManager</Filter>
+    </ClInclude>
+    <ClInclude Include="GraphicsPipeline.h">
+      <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
