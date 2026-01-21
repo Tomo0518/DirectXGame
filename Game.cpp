@@ -138,17 +138,25 @@ void Game::Initialize() {
 	m_wvpResource.Get()->Map(0, nullptr, reinterpret_cast<void**>(&wvpData));
 	wvpData->WVP = Matrix4x4::MakeIdentity4x4();
 	wvpData->World = Matrix4x4::MakeIdentity4x4();
-
+	
+	// ==================================
+	// マテリアル用リソースの生成
+	// ==================================
+	m_materialResource = CreateBufferResource(device, Align256(sizeof(Material)));
+	Material* materialData = nullptr;
+	m_materialResource.Get()->Map(0, nullptr, reinterpret_cast<void**>(&materialData));
+	materialData->color = { 1.0f, 1.0f, 1.0f, 1.0f };
+	materialData->enableLighting = true;
+	materialData->uvTransform = Matrix4x4::MakeIdentity4x4();
 
 	// ==================================
 	// 平行光源用リソースの生成
 	// ==================================
 	m_directionalLightResource = CreateBufferResource(device, Align256(sizeof(DirectionalLight)));
-	DirectionalLight* lightData = nullptr;
-	m_directionalLightResource.Get()->Map(0, nullptr, reinterpret_cast<void**>(&lightData));
-	lightData->color = { 1.0f, 1.0f, 1.0f, 1.0f };
-	lightData->direction = { 0.0f, -1.0f, 0.0f };
-	lightData->intensity = 1.0f;
+	m_directionalLightResource.Get()->Map(0, nullptr, reinterpret_cast<void**>(&lightData_));
+	lightData_->color = { 1.0f, 1.0f, 1.0f, 1.0f };
+	lightData_->direction = { 0.0f, -1.0f, 0.0f };
+	lightData_->intensity = 1.0f;
 
 	// ==================================
 	// Sprite用のResourceの生成
@@ -198,24 +206,23 @@ void Game::Initialize() {
 	// ==================================
 	// Objファイル形式で読み込むオブジェクト
 	// ==================================
-	// !\モデル読み込み
-	ModelData objModelData = LoadObjFile("resources/cube", "cube.obj");
+	// Objファイル形式で読み込むオブジェクト
+	m_objModelData = LoadObjFile("resources/cube", "cube.obj");
 
-	const UINT objVertexCount = static_cast<UINT>(objModelData.vertices.size());
-	// 頂点リソースを作る
-	Microsoft::WRL::ComPtr<ID3D12Resource> objVertexResource = CreateBufferResource(device, sizeof(VertexData) * objModelData.vertices.size());
+	const UINT objVertexCount = static_cast<UINT>(m_objModelData.vertices.size());
 
-	//頂点バッファビューを作成する
-	D3D12_VERTEX_BUFFER_VIEW objVertexBufferView{};
-	objVertexBufferView.BufferLocation = objVertexResource->GetGPUVirtualAddress();
-	objVertexBufferView.SizeInBytes = UINT(sizeof(VertexData) * objModelData.vertices.size());
-	objVertexBufferView.StrideInBytes = sizeof(VertexData);
+	m_objVertexResource = CreateBufferResource(device, sizeof(VertexData) * m_objModelData.vertices.size());
 
-	//頂点リソースにデータを書き込む
+	m_objVertexBufferView.BufferLocation = m_objVertexResource.Get()->GetGPUVirtualAddress();
+	m_objVertexBufferView.SizeInBytes = UINT(sizeof(VertexData) * m_objModelData.vertices.size());
+	m_objVertexBufferView.StrideInBytes = sizeof(VertexData);
+
+	// 頂点リソースにデータを書き込む
 	VertexData* objVertexData = nullptr;
-	objVertexResource->Map(0, nullptr, reinterpret_cast<void**>(&objVertexData));
-	std::memcpy(objVertexData, objModelData.vertices.data(),
-		sizeof(VertexData) * objModelData.vertices.size());
+	m_objVertexResource.Get()->Map(0, nullptr, reinterpret_cast<void**>(&objVertexData));
+	std::memcpy(objVertexData, m_objModelData.vertices.data(),
+		sizeof(VertexData)* m_objModelData.vertices.size());
+	m_objVertexResource.Get()->Unmap(0, nullptr);
 
 	// ==================================
 	// Sphere用のResourceの生成
@@ -338,7 +345,7 @@ void Game::Initialize() {
 	// ==================================
 	// 1. テクスチャファイルの読み込み
 	DirectX::ScratchImage mipImage1 = LoadTexture("resources/uvChecker.png");
-	DirectX::ScratchImage mipImages2 = LoadTexture(objModelData.material.textureFilePath);
+	DirectX::ScratchImage mipImages2 = LoadTexture(m_objModelData.material.textureFilePath);
 	const DirectX::TexMetadata& metadata = mipImage1.GetMetadata();
 	const DirectX::TexMetadata& metadata2 = mipImages2.GetMetadata();
 
@@ -432,9 +439,19 @@ void Game::Update() {
 	// ImGui UI構成
 	ImGui::Begin("Debug");
 	ImGui::ColorEdit4("Material Color", m_materialColor);
-	ImGui::End();
 
+	// 光源の調整
+	ImGui::Text("Light Control");
+	ImGui::ColorEdit4("Light Color", &lightData_->color.x);
+	ImGui::DragFloat3("Light Direction", &lightData_->direction.x, 0.1f);
+	ImGui::DragFloat("Light Intensity", &lightData_->intensity, 0.1f, 0.0f, 10.0f);
+	ImGui::End();
 	ImGui::Render();
+
+
+	// directionalLightData のdirectonを正規化して書き戻す
+	lightData_->direction = Vector3::Normalize(lightData_->direction);
+
 }
 
 void Game::Render() {
@@ -481,6 +498,26 @@ void Game::Render() {
 	// commandList->IASetVertexBuffers(...)
 	// commandList->DrawInstanced(...)
 
+	// ピクセルシェーダー用マテリアルCBV (Root Parameter Index [0])
+	commandList->SetGraphicsRootConstantBufferView(0, m_materialResource.Get()->GetGPUVirtualAddress());
+
+	// 頂点シェーダー用定数バッファ設定 (Root Parameter Index [1])
+	commandList->SetGraphicsRootConstantBufferView(1, m_wvpResource.Get()->GetGPUVirtualAddress());
+
+	// ライト用CBV (Root Parameter Index [3])
+	commandList->SetGraphicsRootConstantBufferView(3, m_directionalLightResource.Get()->GetGPUVirtualAddress());
+
+	// テクスチャSRV (Root Parameter Index [2])
+	D3D12_GPU_DESCRIPTOR_HANDLE textureSrvHandleGPU = m_srvDescriptorHeap->GetGPUDescriptorHandleForHeapStart();
+	// ImGui用に1つずらす
+	uint32_t descriptorSize = GraphicsCore::GetInstance()->GetDevice()->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+	textureSrvHandleGPU.ptr += descriptorSize;
+	commandList->SetGraphicsRootDescriptorTable(2, textureSrvHandleGPU);
+
+
+	//  頂点バッファ設定 (必要な場合)
+	 commandList->IASetVertexBuffers(0, 1, &m_objVertexBufferView);
+
 	// Object描画コマンド
 	commandList->DrawInstanced(UINT(m_objModelData.vertices.size()), 1, 0, 0);
 
@@ -492,8 +529,6 @@ void Game::Render() {
 
 	// 5. コマンドリスト終了と実行
 	context.Finish();
-
-	GraphicsCore::GetInstance()->Present();
 }
 
 void Game::Shutdown() {

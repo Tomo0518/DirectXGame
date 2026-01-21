@@ -27,7 +27,6 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
         // ===============================
         // 2. ゲームクラスの生成・初期化
         // ===============================
-        // main関数を汚さず、リソース管理はGameクラスに一任する
         std::unique_ptr<Game> game = std::make_unique<Game>();
         game->Initialize();
 
@@ -46,6 +45,8 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
                 // 描画 (内部でGraphicsContextを使用)
                 game->Render();
+
+                GraphicsCore::GetInstance()->Present();
             }
         }
 

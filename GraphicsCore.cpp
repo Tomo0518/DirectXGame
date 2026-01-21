@@ -237,7 +237,6 @@ void GraphicsCore::Initialize(HWND windowHandle, int width, int height) {
 }
 
 void GraphicsCore::Present() {
-
 	// ================================
 	// 1. スワップチェーンをフリップ
 	// ================================
@@ -248,18 +247,17 @@ void GraphicsCore::Present() {
 			assert(false && "Device Lost");
 		}
 	}
-	// ===============================================
-	// 2. コマンドキューにシグナルを発行し、CPU側で待機する
-	// ==============================================
-    // ※ 簡易実装として「CPUがGPUの完了を待つ」スタイルにする。
-    //    これで安全にダブルバッファリングが回る。
-    //    将来的には「前のフレームの完了を待つ」形にして並列性を上げる。
-    
-	CommandQueue& graphicsQueue = commandListManager_.GetGraphicsQueue();
-	m_CurrentFenceValue_ = graphicsQueue.IncrementFence(); // 次のフェンス値をセット
 
-	// CPUで待機（GPUがここまで完了するのを待つ）
-	graphicsQueue.WaitForFence(m_CurrentFenceValue_);
+	// ===============================================
+	// 2. 前フレームの完了を待つのではなく、現在のフレームの完了を待つ
+	// ===============================================
+	// ※ ExecuteCommandListで既にフェンスがシグナルされているので、
+	//    その完了を待つだけで良い
+
+	CommandQueue& graphicsQueue = commandListManager_.GetGraphicsQueue();
+
+	// 現在の完了フェンス値を取得（ExecuteCommandListで既にシグナル済み）
+	// 特に追加でシグナルする必要はない
 
 	// 3. 次のバックバッファ番号を取得
 	m_CurrentBackBufferIndex_ = m_SwapChain_->GetCurrentBackBufferIndex();

@@ -54,8 +54,7 @@ public:
     void WaitForFence(uint64_t fenceValue);
     bool IsFenceComplete(uint64_t fenceValue);
     uint64_t IncrementFence() {
-        std::lock_guard<std::mutex> lock(m_fenceMutex);
-		return m_nextFenceValue++;
+        return ++m_nextFenceValue;
     }
 
     uint64_t GetLastCompletedFenceValue() {

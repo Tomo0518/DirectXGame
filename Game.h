@@ -43,7 +43,6 @@ private:
     //    移行フェーズのため main.cpp の変数をここに移動させます
     ResourceObject m_vertexResource;
     ResourceObject m_vertexResourceSprite;
-    ResourceObject m_vertexResourceSphere;
     ResourceObject m_indexResource;
     ResourceObject m_materialResource;
     ResourceObject m_materialResourceSprite;
@@ -51,6 +50,8 @@ private:
     ResourceObject m_wvpResourceSphere;
     ResourceObject m_transformationMatrixResourceSprite;
     ResourceObject m_directionalLightResource;
+    ResourceObject m_objVertexResource;
+
 
     // ビュー関連
     D3D12_VERTEX_BUFFER_VIEW m_objVertexBufferView{};
@@ -71,6 +72,9 @@ private:
     // モデルデータ
     ModelData m_objModelData;
 
+    DirectionalLight *lightData_{};
+
     // ImGui用ディスクリプタヒープ (GraphicsCore側で管理するまでの暫定)
     Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> m_srvDescriptorHeap;
+
 };
