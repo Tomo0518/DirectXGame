@@ -139,9 +139,6 @@
     <Filter Include="ソース ファイル\TomoEngine\Engine\Audio">
       <UniqueIdentifier>{6e7b36a4-9342-42ae-84bd-fbfd601e4fbe}</UniqueIdentifier>
     </Filter>
-    <Filter Include="ソース ファイル\TomoEngine\Engine\Input">
-      <UniqueIdentifier>{a18929cd-b3b8-4468-becb-60adafafa909}</UniqueIdentifier>
-    </Filter>
     <Filter Include="ソース ファイル\TomoEngine\Engine\Game">
       <UniqueIdentifier>{81042953-1896-4e44-be70-9419a52ddd0f}</UniqueIdentifier>
     </Filter>
@@ -153,6 +150,96 @@
     </Filter>
     <Filter Include="ソース ファイル\TomoEngine\Engine\RHI\D3D12\Resources\Shader">
       <UniqueIdentifier>{b5b554da-98d7-4966-9df9-18778841b23b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ソース ファイル\TomoEngine\Engine\Renderer\VertexData">
+      <UniqueIdentifier>{a90c5693-680f-4c2c-92ef-1ee35636d400}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ソース ファイル\TomoEngine\Engine\Core\Model">
+      <UniqueIdentifier>{c18040c1-1534-4f3d-a7b6-0f13ce6a4c4e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ソース ファイル\TomoEngine\Engine\Asset\Loder">
+      <UniqueIdentifier>{d15c73c1-7503-4b3c-8204-334186818645}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ソース ファイル\TomoEngine\Engine\Asset\Loder\LoadObjFile">
+      <UniqueIdentifier>{87517771-a577-4090-9e80-cb717928cddc}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ソース ファイル\TomoEngine\Engine\Asset\Loder\MaterialData">
+      <UniqueIdentifier>{1f33bca7-0fa9-4dc7-8912-29ae865e9761}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ソース ファイル\TomoEngine\Engine\Core\Platform">
+      <UniqueIdentifier>{2aa1aa33-032a-4f3d-9524-26be36c5796f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ソース ファイル\TomoEngine\Engine\Core\Platform\Windows">
+      <UniqueIdentifier>{e23d2304-8f2c-4844-8cd5-d58effe1e931}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ソース ファイル\TomoEngine\Engine\Core\Platform\Windows\Window">
+      <UniqueIdentifier>{e3b6df88-7164-4872-8386-9eee27e8aec8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ソース ファイル\TomoEngine\Engine\Core\Platform\Windows\Window\Input">
+      <UniqueIdentifier>{a18929cd-b3b8-4468-becb-60adafafa909}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ソース ファイル\TomoEngine\Engine\Core\Platform\Windows\Window\Input\Pad">
+      <UniqueIdentifier>{5c83266d-c898-4998-93a8-6859aef1721d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ソース ファイル\TomoEngine\Engine\Core\Platform\Windows\Window\Input\InputManager">
+      <UniqueIdentifier>{a056d393-866d-4e90-b7c0-978128397f84}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ソース ファイル\TomoEngine\Engine\RHI\D3D12\GraphicsCore">
+      <UniqueIdentifier>{67c41400-1c65-4344-b483-5bb5fdcc3650}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ソース ファイル\TomoEngine\Engine\RHI\D3D12\Shader">
+      <UniqueIdentifier>{d0b7f919-b138-4a4e-8e5e-4c492338c969}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ソース ファイル\TomoEngine\Engine\RHI\D3D12\Shader\CompileShader">
+      <UniqueIdentifier>{36e52b68-4805-40c9-8fe8-5a7d58061a2a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ソース ファイル\TomoEngine\Engine\Renderer\RenderTypes">
+      <UniqueIdentifier>{4aebddd4-ca7f-4829-a6dc-37e94c4aab82}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ソース ファイル\TomoEngine\Engine\RHI\D3D12\Resources\ResourcesUtility">
+      <UniqueIdentifier>{cf93abf6-3a56-4703-a449-6c153fab5b4b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ソース ファイル\TomoEngine\Engine\RHI\D3D12\Descriptor\DescriptorUtility">
+      <UniqueIdentifier>{5934376c-1004-475f-9ceb-0884aa79992a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ソース ファイル\TomoEngine\Engine\Math\Geometry">
+      <UniqueIdentifier>{85f127cf-b308-4484-b7f6-cfc59d34ad74}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ソース ファイル\TomoEngine\Engine\Math\3D\Camera">
+      <UniqueIdentifier>{b5893e5a-ac5b-46c6-818f-47fdf71f28c7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ソース ファイル\TomoEngine\Engine\Math\3D\Transform">
+      <UniqueIdentifier>{8c2d6632-26be-4a15-9a6c-9c8aadc8c25e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ソース ファイル\TomoEngine\Engine\Asset\Model">
+      <UniqueIdentifier>{fbde2133-9e75-4d5f-9526-25f204f718fa}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ソース ファイル\TomoEngine\Engine\Core\Command">
+      <UniqueIdentifier>{b3d2a8a0-37b7-45b9-87c9-48e40ee0890c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ソース ファイル\TomoEngine\Engine\Core\Command\CommandQueue">
+      <UniqueIdentifier>{48f3ed5f-9eac-4896-879f-f79a8c5092e4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ソース ファイル\TomoEngine\Engine\Core\Command\CommandListManager">
+      <UniqueIdentifier>{bd950618-a503-4d33-9cde-8476d7279eb5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ソース ファイル\TomoEngine\Engine\Core\Command\CommandContext">
+      <UniqueIdentifier>{474841b5-d437-4c99-92c0-668b301c05c3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ソース ファイル\TomoEngine\Engine\Core\Descriptor">
+      <UniqueIdentifier>{4c9c98d1-3e0d-4c44-90f0-0243531161c2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ソース ファイル\TomoEngine\Engine\Core\GpuResource">
+      <UniqueIdentifier>{7107c6ef-d27c-492d-bbf7-d981c99f2510}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ソース ファイル\TomoEngine\Engine\Core\PixelBuffer">
+      <UniqueIdentifier>{e991cc58-54d2-4963-b6c8-91dfd33c5bd0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ソース ファイル\TomoEngine\Engine\Core\ColorBuffer">
+      <UniqueIdentifier>{16bac512-5b43-4e6f-bbfd-345952c65f37}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ソース ファイル\TomoEngine\Engine\Core\DepthBuffer">
+      <UniqueIdentifier>{84fb8c1b-1556-44b8-9908-bce47f919378}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -216,6 +303,66 @@
     <ClCompile Include="DescriptorHeapHelper.cpp">
       <Filter>ソース ファイル\TomoEngine\Engine\RHI\D3D12\Device</Filter>
     </ClCompile>
+    <ClCompile Include="ModelData.cpp">
+      <Filter>ソース ファイル\TomoEngine\Engine\Asset\Loder</Filter>
+    </ClCompile>
+    <ClCompile Include="LoadObjFile.cpp">
+      <Filter>ソース ファイル\TomoEngine\Engine\Asset\Loder\LoadObjFile</Filter>
+    </ClCompile>
+    <ClCompile Include="InputManager.cpp">
+      <Filter>ソース ファイル\TomoEngine\Engine\Core\Platform\Windows\Window\Input\InputManager</Filter>
+    </ClCompile>
+    <ClCompile Include="Pad.cpp">
+      <Filter>ソース ファイル\TomoEngine\Engine\Core\Platform\Windows\Window\Input\Pad</Filter>
+    </ClCompile>
+    <ClCompile Include="LoadMaterialTemplateFile.cpp">
+      <Filter>ソース ファイル\TomoEngine\Engine\Asset\Loder\MaterialData</Filter>
+    </ClCompile>
+    <ClCompile Include="Window.cpp">
+      <Filter>ソース ファイル\TomoEngine\Engine\Core\Platform\Windows\Window</Filter>
+    </ClCompile>
+    <ClCompile Include="GraphicsCore.cpp">
+      <Filter>ソース ファイル\TomoEngine\Engine\RHI\D3D12\GraphicsCore</Filter>
+    </ClCompile>
+    <ClCompile Include="CompileShader.cpp">
+      <Filter>ソース ファイル\TomoEngine\Engine\RHI\D3D12\Shader\CompileShader</Filter>
+    </ClCompile>
+    <ClCompile Include="ResourcesUtility.cpp">
+      <Filter>ソース ファイル\TomoEngine\Engine\RHI\D3D12\Resources\ResourcesUtility</Filter>
+    </ClCompile>
+    <ClCompile Include="DescriptorUtility.cpp">
+      <Filter>ソース ファイル\TomoEngine\Engine\RHI\D3D12\Descriptor\DescriptorUtility</Filter>
+    </ClCompile>
+    <ClCompile Include="CommandQueue.cpp">
+      <Filter>ソース ファイル\TomoEngine\Engine\Core\Command\CommandQueue</Filter>
+    </ClCompile>
+    <ClCompile Include="CommandContext.cpp">
+      <Filter>ソース ファイル\TomoEngine\Engine\Core\Command\CommandContext</Filter>
+    </ClCompile>
+    <ClCompile Include="Player.cpp">
+      <Filter>ソース ファイル\TomoEngine\Engine\Game\Object</Filter>
+    </ClCompile>
+    <ClCompile Include="Transform.cpp">
+      <Filter>ソース ファイル\TomoEngine\Engine\Math\3D\Transform</Filter>
+    </ClCompile>
+    <ClCompile Include="Camera.cpp">
+      <Filter>ソース ファイル\TomoEngine\Engine\Math\3D\Camera</Filter>
+    </ClCompile>
+    <ClCompile Include="Model.cpp">
+      <Filter>ソース ファイル\TomoEngine\Engine\Asset\Model</Filter>
+    </ClCompile>
+    <ClCompile Include="CommandListManager.cpp">
+      <Filter>ソース ファイル\TomoEngine\Engine\Core\Command\CommandListManager</Filter>
+    </ClCompile>
+    <ClCompile Include="DescriptorHeap.cpp">
+      <Filter>ソース ファイル\TomoEngine\Engine\Core\Descriptor</Filter>
+    </ClCompile>
+    <ClCompile Include="DepthBuffer.cpp">
+      <Filter>ソース ファイル\TomoEngine\Engine\Core\DepthBuffer</Filter>
+    </ClCompile>
+    <ClCompile Include="ColorBuffer.cpp">
+      <Filter>ソース ファイル\TomoEngine\Engine\Core\ColorBuffer</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Logger.h">
@@ -233,9 +380,6 @@
     <ClInclude Include="ConvertString.h">
       <Filter>ソース ファイル\TomoEngine\Engine\Core\Utility\ConvertString</Filter>
     </ClInclude>
-    <ClInclude Include="Game\Object\Player\Player.h">
-      <Filter>ソース ファイル\TomoEngine\Engine\Game\Object</Filter>
-    </ClInclude>
     <ClInclude Include="RendererDX12.h">
       <Filter>ソース ファイル\TomoEngine\Engine\Core\Modules</Filter>
     </ClInclude>
@@ -244,9 +388,6 @@
     </ClInclude>
     <ClInclude Include="Vector3.h">
       <Filter>ソース ファイル\TomoEngine\Engine\Math\3D\Vector3</Filter>
-    </ClInclude>
-    <ClInclude Include="Transform.h">
-      <Filter>ソース ファイル\TomoEngine\Engine\Math\3D</Filter>
     </ClInclude>
     <ClInclude Include="Vector4.h">
       <Filter>ソース ファイル\TomoEngine\Engine\Math\3D\Vector4</Filter>
@@ -301,6 +442,99 @@
     </ClInclude>
     <ClInclude Include="DescriptorHeapHelper.h">
       <Filter>ソース ファイル\TomoEngine\Engine\RHI\D3D12\Device</Filter>
+    </ClInclude>
+    <ClInclude Include="VertexData.h">
+      <Filter>ソース ファイル\TomoEngine\Engine\Renderer\VertexData</Filter>
+    </ClInclude>
+    <ClInclude Include="ModelData.h">
+      <Filter>ソース ファイル\TomoEngine\Engine\Asset\Loder</Filter>
+    </ClInclude>
+    <ClInclude Include="LoadObjFile.h">
+      <Filter>ソース ファイル\TomoEngine\Engine\Asset\Loder\LoadObjFile</Filter>
+    </ClInclude>
+    <ClInclude Include="InputManager.h">
+      <Filter>ソース ファイル\TomoEngine\Engine\Core\Platform\Windows\Window\Input\InputManager</Filter>
+    </ClInclude>
+    <ClInclude Include="Pad.h">
+      <Filter>ソース ファイル\TomoEngine\Engine\Core\Platform\Windows\Window\Input\Pad</Filter>
+    </ClInclude>
+    <ClInclude Include="MaterialData.h">
+      <Filter>ソース ファイル\TomoEngine\Engine\Asset\Loder\MaterialData</Filter>
+    </ClInclude>
+    <ClInclude Include="LoadMaterialTemplateFile.h">
+      <Filter>ソース ファイル\TomoEngine\Engine\Asset\Loder\MaterialData</Filter>
+    </ClInclude>
+    <ClInclude Include="Window.h">
+      <Filter>ソース ファイル\TomoEngine\Engine\Core\Platform\Windows\Window</Filter>
+    </ClInclude>
+    <ClInclude Include="GraphicsCore.h">
+      <Filter>ソース ファイル\TomoEngine\Engine\RHI\D3D12\GraphicsCore</Filter>
+    </ClInclude>
+    <ClInclude Include="D3DResourceLeakChecker.h">
+      <Filter>ソース ファイル\TomoEngine\Engine\RHI\D3D12\Debug</Filter>
+    </ClInclude>
+    <ClInclude Include="CompileShader.h">
+      <Filter>ソース ファイル\TomoEngine\Engine\RHI\D3D12\Shader\CompileShader</Filter>
+    </ClInclude>
+    <ClInclude Include="Material.h">
+      <Filter>ソース ファイル\TomoEngine\Engine\Renderer\RenderTypes</Filter>
+    </ClInclude>
+    <ClInclude Include="TransformationMatrix.h">
+      <Filter>ソース ファイル\TomoEngine\Engine\Renderer\RenderTypes</Filter>
+    </ClInclude>
+    <ClInclude Include="DirectionalLight.h">
+      <Filter>ソース ファイル\TomoEngine\Engine\Renderer\RenderTypes</Filter>
+    </ClInclude>
+    <ClInclude Include="RenderTypes.h">
+      <Filter>ソース ファイル\TomoEngine\Engine\Renderer\RenderTypes</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer.h">
+      <Filter>ソース ファイル\TomoEngine\Engine\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="ResourcesUtility.h">
+      <Filter>ソース ファイル\TomoEngine\Engine\RHI\D3D12\Resources\ResourcesUtility</Filter>
+    </ClInclude>
+    <ClInclude Include="DescriptorUtility.h">
+      <Filter>ソース ファイル\TomoEngine\Engine\RHI\D3D12\Descriptor\DescriptorUtility</Filter>
+    </ClInclude>
+    <ClInclude Include="Sphere.h">
+      <Filter>ソース ファイル\TomoEngine\Engine\Math\Geometry</Filter>
+    </ClInclude>
+    <ClInclude Include="CommandQueue.h">
+      <Filter>ソース ファイル\TomoEngine\Engine\Core\Command\CommandQueue</Filter>
+    </ClInclude>
+    <ClInclude Include="CommandContext.h">
+      <Filter>ソース ファイル\TomoEngine\Engine\Core\Command\CommandContext</Filter>
+    </ClInclude>
+    <ClInclude Include="Player.h">
+      <Filter>ソース ファイル\TomoEngine\Engine\Game\Object</Filter>
+    </ClInclude>
+    <ClInclude Include="Transform.h">
+      <Filter>ソース ファイル\TomoEngine\Engine\Math\3D\Transform</Filter>
+    </ClInclude>
+    <ClInclude Include="Camera.h">
+      <Filter>ソース ファイル\TomoEngine\Engine\Math\3D\Camera</Filter>
+    </ClInclude>
+    <ClInclude Include="Model.h">
+      <Filter>ソース ファイル\TomoEngine\Engine\Asset\Model</Filter>
+    </ClInclude>
+    <ClInclude Include="CommandListManager.h">
+      <Filter>ソース ファイル\TomoEngine\Engine\Core\Command\CommandListManager</Filter>
+    </ClInclude>
+    <ClInclude Include="GpuResource.h">
+      <Filter>ソース ファイル\TomoEngine\Engine\Core\GpuResource</Filter>
+    </ClInclude>
+    <ClInclude Include="DescriptorHeap.h">
+      <Filter>ソース ファイル\TomoEngine\Engine\Core\Descriptor</Filter>
+    </ClInclude>
+    <ClInclude Include="PixelBuffer.h">
+      <Filter>ソース ファイル\TomoEngine\Engine\Core\PixelBuffer</Filter>
+    </ClInclude>
+    <ClInclude Include="DepthBuffer.h">
+      <Filter>ソース ファイル\TomoEngine\Engine\Core\DepthBuffer</Filter>
+    </ClInclude>
+    <ClInclude Include="ColorBuffer.h">
+      <Filter>ソース ファイル\TomoEngine\Engine\Core\ColorBuffer</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

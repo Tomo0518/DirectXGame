@@ -19,6 +19,13 @@
 #pragma comment(lib, "dxcompiler.lib")
 
 // =============================
+// Asset群
+// =============================
+
+// -------- Lorder ------------
+#include "LoadObjFile.h"
+
+// =============================
 // Math
 // =============================
 #include "Math.h"
@@ -34,6 +41,11 @@
 extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
 // ==============================
+// Renderer
+// ==============================
+#include "Renderer.h"
+
+// ==============================
 // RHI群
 // ==============================
 #include "D3D12Includes.h"
@@ -41,11 +53,15 @@ extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg
 // Resource
 #include "ResourcesIncludes.h"
 
+// =============================
+// D3D12
+// =============================
+#include "GraphicsCore.h"
 
 // =============================
-// Utility群
+// Core
 // =============================
-#include "Utility.h"
+#include "Core.h"
 
 // =============================
 // 外部ライブラリ
