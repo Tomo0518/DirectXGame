@@ -241,6 +241,9 @@
     <Filter Include="ソース ファイル\TomoEngine\Engine\Core\DepthBuffer">
       <UniqueIdentifier>{84fb8c1b-1556-44b8-9908-bce47f919378}</UniqueIdentifier>
     </Filter>
+    <Filter Include="ソース ファイル\TomoEngine\Engine\Core\TextureManager">
+      <UniqueIdentifier>{6dcdd3fd-d40d-4622-bc8c-55f5462fe18b}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -362,6 +365,9 @@
     </ClCompile>
     <ClCompile Include="ColorBuffer.cpp">
       <Filter>ソース ファイル\TomoEngine\Engine\Core\ColorBuffer</Filter>
+    </ClCompile>
+    <ClCompile Include="TextureManager.cpp">
+      <Filter>ソース ファイル\TomoEngine\Engine\Core\TextureManager</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -535,6 +541,9 @@
     </ClInclude>
     <ClInclude Include="ColorBuffer.h">
       <Filter>ソース ファイル\TomoEngine\Engine\Core\ColorBuffer</Filter>
+    </ClInclude>
+    <ClInclude Include="TextureManager.h">
+      <Filter>ソース ファイル\TomoEngine\Engine\Core\TextureManager</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

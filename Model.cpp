@@ -3,6 +3,7 @@
 #include "ResourcesUtility.h"
 #include "DescriptorUtility.h"
 #include <cassert>
+#include "TextureManager.h"
 
 // 静的ファクトリメソッド
 Model* Model::CreateFromOBJ(
@@ -22,6 +23,14 @@ Model* Model::CreateFromOBJ(
 
     return model;
 }
+
+Model* Model::CreateFromOBJ(const std::string& directoryPath, const std::string& filename, ID3D12GraphicsCommandList* commandList) {
+    Model* model = new Model();
+    ModelData modelData = LoadObjFile(directoryPath, filename);
+    model->Initialize(modelData, commandList);
+    return model;
+}
+
 
 // モデルの初期化
 void Model::Initialize(
@@ -91,6 +100,54 @@ void Model::Initialize(
         textureSrvHandleGPU = srvGpuHandle;
     }
 }
+
+
+void Model::Initialize(const ModelData& modelData, ID3D12GraphicsCommandList* commandList) {
+    modelData_ = modelData;
+
+    ID3D12Device* device = GraphicsCore::GetInstance()->GetDevice();
+    assert(device);
+
+    // ===================================
+    // 1. 頂点バッファの生成
+    // ===================================
+    vertexBuffer = CreateBufferResource(device, sizeof(VertexData) * modelData_.vertices.size());
+
+    // 頂点バッファビューの作成
+    vertexBufferView.BufferLocation = vertexBuffer->GetGPUVirtualAddress();
+    vertexBufferView.SizeInBytes = static_cast<UINT>(sizeof(VertexData) * modelData_.vertices.size());
+    vertexBufferView.StrideInBytes = sizeof(VertexData);
+
+    // 頂点データをバッファにコピー
+    VertexData* vertexData = nullptr;
+    vertexBuffer->Map(0, nullptr, reinterpret_cast<void**>(&vertexData));
+    std::memcpy(vertexData, modelData_.vertices.data(), sizeof(VertexData) * modelData_.vertices.size());
+    // Map したままにする
+
+    // ===================================
+    // 2. マテリアルリソースの生成
+    // ===================================
+    materialResource = CreateBufferResource(device, Align256(sizeof(Material)));
+
+    // マテリアルデータを書き込む
+    materialResource.Get()->Map(0, nullptr, reinterpret_cast<void**>(&materialData));
+    materialData->color = { 1.0f, 1.0f, 1.0f, 1.0f }; // デフォルトは白
+    materialData->enableLighting = true;
+    materialData->uvTransform = Matrix4x4::MakeIdentity4x4();
+
+    // テクスチャ読み込み部分
+    if (!modelData_.material.textureFilePath.empty()) {
+        // ★ TextureManagerに頼むだけ！
+        const Texture* tex = TextureManager::GetInstance()->Load(modelData_.material.textureFilePath, commandList);
+
+        // ハンドルを保持
+        if (tex) {
+            textureSrvHandleGPU = tex->gpuHandle;
+            // resourceメンバ変数は不要になる（Managerが持ってるので）
+        }
+    }
+}
+
 
 // 描画準備
 void Model::PreDraw(ID3D12GraphicsCommandList* commandList) {

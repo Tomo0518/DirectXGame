@@ -16,6 +16,9 @@ public:
         D3D12_GPU_DESCRIPTOR_HANDLE srvGpuHandle
     );
 
+
+    static Model* CreateFromOBJ(const std::string& directoryPath, const std::string& filename, ID3D12GraphicsCommandList* commandList);
+
     // 初期化
     void Initialize(
         const ModelData& modelData,
@@ -23,6 +26,8 @@ public:
         D3D12_CPU_DESCRIPTOR_HANDLE srvCpuHandle,
         D3D12_GPU_DESCRIPTOR_HANDLE srvGpuHandle
     );
+
+    void Initialize(const ModelData& modelData, ID3D12GraphicsCommandList* commandList);
 
     // 描画準備（頂点バッファ、マテリアルのセット）
     void PreDraw(ID3D12GraphicsCommandList* commandList);

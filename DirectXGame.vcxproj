@@ -115,6 +115,7 @@ if exist "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" copy /y "$(
     <ClCompile Include="RendererDX12.cpp" />
     <ClCompile Include="ResourceObject.cpp" />
     <ClCompile Include="ResourcesUtility.cpp" />
+    <ClCompile Include="TextureManager.cpp" />
     <ClCompile Include="TomoEngine.cpp" />
     <ClCompile Include="Transform.cpp" />
     <ClCompile Include="Vector2.cpp" />
@@ -171,6 +172,7 @@ if exist "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" copy /y "$(
     <ClInclude Include="ResourcesIncludes.h" />
     <ClInclude Include="ResourcesUtility.h" />
     <ClInclude Include="Sphere.h" />
+    <ClInclude Include="TextureManager.h" />
     <ClInclude Include="TomoEngine.h" />
     <ClInclude Include="Transform.h" />
     <ClInclude Include="TransformationMatrix.h" />

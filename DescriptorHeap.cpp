@@ -80,3 +80,53 @@ DescriptorHandle DescriptorAllocator::Allocate(uint32_t count)
 
     return ret;
 }
+
+void DescriptorHeap::Create(ID3D12Device* device, D3D12_DESCRIPTOR_HEAP_TYPE type, UINT numDescriptors, bool shaderVisible) {
+    capacity_ = numDescriptors;
+    descriptorSize_ = device->GetDescriptorHandleIncrementSize(type);
+    current_ = 0;
+
+    D3D12_DESCRIPTOR_HEAP_DESC desc = {};
+    desc.Type = type;
+    desc.NumDescriptors = numDescriptors;
+    // ★ここが重要：シェーダー可視フラグを適切に設定する
+    desc.Flags = shaderVisible ? D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE : D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
+
+    HRESULT hr = device->CreateDescriptorHeap(&desc, IID_PPV_ARGS(&heap_));
+    assert(SUCCEEDED(hr));
+
+    // 名前をつけておく（デバッグ用）
+    if (shaderVisible) {
+        heap_->SetName(L"SRV Descriptor Heap");
+    }
+    else {
+        heap_->SetName(L"RTV/DSV Descriptor Heap");
+    }
+
+    startCpuHandle_ = heap_->GetCPUDescriptorHandleForHeapStart();
+
+    // ShaderVisibleのときだけGPUハンドルを取得する
+    if (shaderVisible) {
+        startGpuHandle_ = heap_->GetGPUDescriptorHandleForHeapStart();
+    }
+    else {
+        startGpuHandle_.ptr = 0;
+    }
+}
+
+std::pair<D3D12_CPU_DESCRIPTOR_HANDLE, D3D12_GPU_DESCRIPTOR_HANDLE> DescriptorHeap::Allocate() {
+    // 容量オーバーチェック
+    assert(current_ < capacity_ && "Descriptor Heap Out of Memory!");
+
+    D3D12_CPU_DESCRIPTOR_HANDLE cpuHandle = startCpuHandle_;
+    cpuHandle.ptr += static_cast<SIZE_T>(current_) * descriptorSize_;
+
+    D3D12_GPU_DESCRIPTOR_HANDLE gpuHandle = startGpuHandle_;
+    // GPUハンドルが有効な場合のみ計算
+    if (gpuHandle.ptr != 0) {
+        gpuHandle.ptr += static_cast<UINT64>(current_) * descriptorSize_;
+    }
+
+    current_++; // 次の場所へ進める
+    return { cpuHandle, gpuHandle };
+}

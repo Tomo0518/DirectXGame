@@ -36,8 +36,10 @@ private:
     Microsoft::WRL::ComPtr<IDxcIncludeHandler> m_includeHandler;
 
     // テクスチャリソース
-    Microsoft::WRL::ComPtr<ID3D12Resource> m_textureResource;
+    D3D12_GPU_DESCRIPTOR_HANDLE m_uvCheckerGpuHandle = {};
     //Microsoft::WRL::ComPtr<ID3D12Resource> m_textureResource2;
+
+    DescriptorHeap m_srvHeap;
 
     // モデル・スプライト・球体などのリソース
     // ※ 本来は Model クラス等に隠蔽すべきですが、
@@ -78,6 +80,6 @@ private:
     DirectionalLight *lightData_{};
 
     // ImGui用ディスクリプタヒープ (GraphicsCore側で管理するまでの暫定)
-    Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> m_srvDescriptorHeap;
+    //Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> m_srvDescriptorHeap;
 
 };
