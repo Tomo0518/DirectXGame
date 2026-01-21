@@ -154,6 +154,7 @@ void Game::Initialize() {
 	// ==================================
 	m_directionalLightResource = CreateBufferResource(device, Align256(sizeof(DirectionalLight)));
 	m_directionalLightResource.Get()->Map(0, nullptr, reinterpret_cast<void**>(&lightData_));
+
 	lightData_->color = { 1.0f, 1.0f, 1.0f, 1.0f };
 	lightData_->direction = { 0.0f, -1.0f, 0.0f };
 	lightData_->intensity = 1.0f;
@@ -207,22 +208,22 @@ void Game::Initialize() {
 	// Objファイル形式で読み込むオブジェクト
 	// ==================================
 	// Objファイル形式で読み込むオブジェクト
-	m_objModelData = LoadObjFile("resources/cube", "cube.obj");
+	//m_objModelData = LoadObjFile("resources/cube", "cube.obj");
 
-	const UINT objVertexCount = static_cast<UINT>(m_objModelData.vertices.size());
+	//const UINT objVertexCount = static_cast<UINT>(m_objModelData.vertices.size());
 
-	m_objVertexResource = CreateBufferResource(device, sizeof(VertexData) * m_objModelData.vertices.size());
+	//m_objVertexResource = CreateBufferResource(device, sizeof(VertexData) * m_objModelData.vertices.size());
 
-	m_objVertexBufferView.BufferLocation = m_objVertexResource.Get()->GetGPUVirtualAddress();
-	m_objVertexBufferView.SizeInBytes = UINT(sizeof(VertexData) * m_objModelData.vertices.size());
-	m_objVertexBufferView.StrideInBytes = sizeof(VertexData);
+	//m_objVertexBufferView.BufferLocation = m_objVertexResource.Get()->GetGPUVirtualAddress();
+	//m_objVertexBufferView.SizeInBytes = UINT(sizeof(VertexData) * m_objModelData.vertices.size());
+	//m_objVertexBufferView.StrideInBytes = sizeof(VertexData);
 
-	// 頂点リソースにデータを書き込む
-	VertexData* objVertexData = nullptr;
-	m_objVertexResource.Get()->Map(0, nullptr, reinterpret_cast<void**>(&objVertexData));
-	std::memcpy(objVertexData, m_objModelData.vertices.data(),
-		sizeof(VertexData)* m_objModelData.vertices.size());
-	m_objVertexResource.Get()->Unmap(0, nullptr);
+	//// 頂点リソースにデータを書き込む
+	//VertexData* objVertexData = nullptr;
+	//m_objVertexResource.Get()->Map(0, nullptr, reinterpret_cast<void**>(&objVertexData));
+	//std::memcpy(objVertexData, m_objModelData.vertices.data(),
+	//	sizeof(VertexData)* m_objModelData.vertices.size());
+	//m_objVertexResource.Get()->Unmap(0, nullptr);
 
 	// ==================================
 	// Sphere用のResourceの生成
@@ -339,73 +340,42 @@ void Game::Initialize() {
 	// テクスチャロードなどもここで行う
 
 	// ==================================
-	// Textureを読んで転送する
+	// モデルとテクスチャの読み込み・転送
 	// ==================================
-
-	// ==================================
-	// 1. テクスチャファイルの読み込み
-	DirectX::ScratchImage mipImage1 = LoadTexture("resources/uvChecker.png");
-	DirectX::ScratchImage mipImages2 = LoadTexture(m_objModelData.material.textureFilePath);
-	const DirectX::TexMetadata& metadata = mipImage1.GetMetadata();
-	const DirectX::TexMetadata& metadata2 = mipImages2.GetMetadata();
-
-
-	// ==================================
-	// 2. GPUリソース（Texture）の作成
-	// ==================================
-	m_textureResource = CreateTextureResource(device, metadata);
-	m_textureResource2 = CreateTextureResource(device, metadata2);
-
-	// ==================================
-	// 3. 転送コマンドの記録
-	// ==================================
-	GraphicsContext& context = GraphicsContext::Begin(L"Texture Upload");
+	// グラフィックスコマンドを使ってテクスチャ転送を行う
+	GraphicsContext& context = GraphicsContext::Begin(L"Load Models");
 	ID3D12GraphicsCommandList* commandList = context.GetCommandList();
 
-	ResourceObject intermediateResource = UploadTextureData(m_textureResource, mipImage1,device,commandList);
-	ResourceObject intermediateResource2 = UploadTextureData(m_textureResource2, mipImages2, device, commandList);
-	
-	// ==================================
-	// 4. 転送コマンドの実行と完了待ち
-	// ==================================
-	context.Finish(true);
+	// 1. 既存のuvChecker (Sprite用などに残す場合)
+	DirectX::ScratchImage mipImage1 = LoadTexture("resources/uvChecker.png");
+	const DirectX::TexMetadata& metadata = mipImage1.GetMetadata();
+	m_textureResource = CreateTextureResource(device, metadata);
+	// 戻り値を無視せず、[[nodiscard]]属性の警告を回避するため、戻り値を明示的に利用する
+	auto uploadResult = UploadTextureData(m_textureResource, mipImage1, device, commandList);
+	(void)uploadResult; // 使わない場合は明示的に無視
 
-	// DescriptorのSizeを取得
-	const uint32_t descriptorSizeSRV = device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-	const uint32_t descriptorSizeRTV = device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
-	const uint32_t descriptorSizeDSV = device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_DSV);
+	// uvChecker用のSRV作成 (Index 1: ImGuiが0を使うため)
+	uint32_t descriptorSize = device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+	D3D12_CPU_DESCRIPTOR_HANDLE srvHandleCPU = GetCPUDescriptorHandle(m_srvDescriptorHeap.Get(), descriptorSize, 1);
 
-	// ==================================
-	// ShaderResourceViewの生成(SRV)の生成
-	// ==================================
-	// metaDataをもとにSRVの設定を行う
 	D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
 	srvDesc.Format = metadata.format;
 	srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
-	srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D; // 2Dテクスチャ
+	srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
 	srvDesc.Texture2D.MipLevels = static_cast<UINT>(metadata.mipLevels);
+	device->CreateShaderResourceView(m_textureResource.Get(), &srvDesc, srvHandleCPU);
 
-	// SRVを作成するDescriptorHeapの場所を決める
-	D3D12_CPU_DESCRIPTOR_HANDLE textureSrvHandleCPU = m_srvDescriptorHeap.Get()->GetCPUDescriptorHandleForHeapStart();
-	D3D12_GPU_DESCRIPTOR_HANDLE textureSrvHandleGPU = m_srvDescriptorHeap.Get()->GetGPUDescriptorHandleForHeapStart();
-	// 先頭はImGuiが使うので1つ分ずらす
-	textureSrvHandleCPU.ptr += device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-	textureSrvHandleGPU.ptr += device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-	// SRVを生成
-	device->CreateShaderResourceView(m_textureResource.Get(), &srvDesc, textureSrvHandleCPU);
 
-	D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc2 = {};
-	srvDesc2.Format = metadata2.format;
-	srvDesc2.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
-	srvDesc2.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D; // 2Dテクスチャ
-	srvDesc2.Texture2D.MipLevels = static_cast<UINT>(metadata2.mipLevels);
+	// 2. Modelの生成 (Index 2 をモデル用に使用)
+	//    内部でOBJ読み込み、テクスチャロード、SRV作成、転送コマンド積み込みまで全部やってくれます
+	D3D12_CPU_DESCRIPTOR_HANDLE modelSrvCpuHandle = GetCPUDescriptorHandle(m_srvDescriptorHeap.Get(), descriptorSize, 2);
+	D3D12_GPU_DESCRIPTOR_HANDLE modelSrvGpuHandle = GetGPUDescriptorHandle(m_srvDescriptorHeap.Get(), descriptorSize, 2);
 
-	// SRVを作成するDescriptorHeapの場所を決める
-	D3D12_CPU_DESCRIPTOR_HANDLE textureSrvHandleCPU2 = GetCPUDescriptorHandle(m_srvDescriptorHeap.Get(), descriptorSizeSRV, 2);
-	D3D12_GPU_DESCRIPTOR_HANDLE textureSrvHandleGPU2 = GetGPUDescriptorHandle(m_srvDescriptorHeap.Get(), descriptorSizeSRV, 2);
-	// SRVを生成
-	device->CreateShaderResourceView(m_textureResource2.Get(), &srvDesc2, textureSrvHandleCPU2);
+	m_modelCube_ = Model::CreateFromOBJ("resources/cube", "cube.obj", commandList, modelSrvCpuHandle, modelSrvGpuHandle);
 
+
+	// 転送コマンドの実行と待機
+	context.Finish(true);
 }
 
 void Game::Update() {
@@ -514,12 +484,12 @@ void Game::Render() {
 	textureSrvHandleGPU.ptr += descriptorSize;
 	commandList->SetGraphicsRootDescriptorTable(2, textureSrvHandleGPU);
 
+	// 2. モデルの描画
+	//    PreDraw: 頂点バッファとマテリアル(RootIndex 0)のセット
+	m_modelCube_->PreDraw(commandList);
 
-	//  頂点バッファ設定 (必要な場合)
-	 commandList->IASetVertexBuffers(0, 1, &m_objVertexBufferView);
-
-	// Object描画コマンド
-	commandList->DrawInstanced(UINT(m_objModelData.vertices.size()), 1, 0, 0);
+	//    Draw: テクスチャ(RootIndex 2)のセットとドローコール
+	m_modelCube_->Draw(commandList);
 
 	// ImGui描画
 	ImGui_ImplDX12_RenderDrawData(ImGui::GetDrawData(), commandList);
@@ -534,6 +504,10 @@ void Game::Render() {
 void Game::Shutdown() {
 	// GPU処理の完了を待機
 	GraphicsCore::GetInstance()->GetCommandListManager().GetGraphicsQueue().WaitForIdle();
+
+	// 生成したモデルの解放
+	delete m_modelCube_;
+	m_modelCube_ = nullptr;
 
 	ImGui_ImplDX12_Shutdown();
 	ImGui_ImplWin32_Shutdown();

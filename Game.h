@@ -2,6 +2,7 @@
 #include "TomoEngine.h"
 #include <memory>
 #include <vector>
+#include "Model.h"
 
 // 前方宣言
 class GraphicsContext;
@@ -36,7 +37,7 @@ private:
 
     // テクスチャリソース
     Microsoft::WRL::ComPtr<ID3D12Resource> m_textureResource;
-    Microsoft::WRL::ComPtr<ID3D12Resource> m_textureResource2;
+    //Microsoft::WRL::ComPtr<ID3D12Resource> m_textureResource2;
 
     // モデル・スプライト・球体などのリソース
     // ※ 本来は Model クラス等に隠蔽すべきですが、
@@ -50,11 +51,11 @@ private:
     ResourceObject m_wvpResourceSphere;
     ResourceObject m_transformationMatrixResourceSprite;
     ResourceObject m_directionalLightResource;
-    ResourceObject m_objVertexResource;
+   // ResourceObject m_objVertexResource;
 
 
     // ビュー関連
-    D3D12_VERTEX_BUFFER_VIEW m_objVertexBufferView{};
+   // D3D12_VERTEX_BUFFER_VIEW m_objVertexBufferView{};
     D3D12_VERTEX_BUFFER_VIEW m_vertexBufferViewSprite{};
     D3D12_VERTEX_BUFFER_VIEW m_vertexBufferViewSphere{};
     D3D12_INDEX_BUFFER_VIEW m_indexBufferViewSprite{};
@@ -70,7 +71,9 @@ private:
     float m_materialColor[4] = { 1.0f,1.0f,1.0f,1.0f };
 
     // モデルデータ
-    ModelData m_objModelData;
+    //ModelData m_objModelData;
+
+	Model* m_modelCube_ = nullptr;
 
     DirectionalLight *lightData_{};
 
