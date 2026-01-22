@@ -7,6 +7,7 @@
 #include "TextureManager.h"
 #include "Sphere.h"
 #include "Camera.h"
+#include "ModelData.h"
 
 inline InputManager& Input() { return *InputManager::GetInstance(); }
 
@@ -94,6 +95,48 @@ void Game::Initialize() {
         imguiGpuHandle
     );
 
+	// ==================================
+	// パーティクル用のインスタンシングリソース生成
+	// ==================================
+
+	m_instancingResource = CreateBufferResource(
+		device, sizeof(TransformationMatrix) * kNumInstance);
+
+	m_instancingResource.Get()->Map(0, nullptr, reinterpret_cast<void**>(&instancingData_));
+
+	for (uint32_t index = 0; index < kNumInstance; ++index) {
+		instancingData_[index].WVP = Matrix4x4::MakeIdentity4x4();
+		instancingData_[index].World = Matrix4x4::MakeIdentity4x4();
+	}
+
+	// ★ DescriptorHeapから自動割り当て
+	auto [instancingSrvHandleCPU, instancingSrvHandleGPU] = m_srvHeap.Allocate();
+
+	// StructuredBuffer用のSRV設定
+	D3D12_SHADER_RESOURCE_VIEW_DESC instancingSrvDesc{};
+	instancingSrvDesc.Format = DXGI_FORMAT_UNKNOWN;
+	instancingSrvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+	instancingSrvDesc.ViewDimension = D3D12_SRV_DIMENSION_BUFFER;
+	instancingSrvDesc.Buffer.FirstElement = 0;
+	instancingSrvDesc.Buffer.Flags = D3D12_BUFFER_SRV_FLAG_NONE;
+	instancingSrvDesc.Buffer.NumElements = kNumInstance;
+	instancingSrvDesc.Buffer.StructureByteStride = sizeof(TransformationMatrix);
+
+	// SRVを作成
+	device->CreateShaderResourceView(
+		m_instancingResource.Get(),
+		&instancingSrvDesc,
+		instancingSrvHandleCPU);
+
+	// instancingSrvHandleGPUを保存しておく（描画時に使用）
+	m_instancingSrvHandleGPU = instancingSrvHandleGPU;  // メンバ変数として保持
+
+	for (uint32_t index = 0; index < kNumInstance; ++index) {
+		transform_particles[index].scale = { 1.0f, 1.0f, 1.0f };
+		transform_particles[index].rotate = { 0.0f, 0.0f, 0.0f };
+		transform_particles[index].translate = { index * 0.1f,index * 0.1f,index * 0.1f };
+	}
+
     // ==================================
     // 6. テクスチャ・モデル読み込み
     // ==================================
@@ -110,6 +153,27 @@ void Game::Initialize() {
     if (uvCheckerTexture) {
         m_uvCheckerGpuHandle = uvCheckerTexture->gpuHandle;
     }*/
+
+	// モデルデータの初期化
+
+	modelDataParticle_ = ModelData();
+	// 頂点データの設定 (四角形2つで1枚の板ポリゴン)
+	modelDataParticle_.vertices = {
+		// 0番
+		{{-0.5f, 0.5f, 0.0f, 1.0f}, {0.0f, 0.0f}, {0.0f, 0.0f, -1.0f}},
+		// 1番
+		{{0.5f, 0.5f, 0.0f, 1.0f}, {1.0f, 0.0f}, {0.0f, 0.0f, -1.0f}},
+		// 2番
+		{{-0.5f, -0.5f, 0.0f, 1.0f}, {0.0f, 1.0f}, {0.0f, 0.0f, -1.0f}},
+		// 3番
+		{{0.5f, 0.5f, 0.0f, 1.0f}, {1.0f, 0.0f}, {0.0f, 0.0f, -1.0f}},
+		// 4番
+		{{0.5f, -0.5f, 0.0f, 1.0f}, {1.0f, 1.0f}, {0.0f, 0.0f, -1.0f}},
+		// 5番
+		{{-0.5f, -0.5f, 0.0f, 1.0f}, {0.0f, 1.0f}, {0.0f, 0.0f, -1.0f}},
+	};
+	modelDataParticle_.material.textureFilePath = "resources/uvChecker.png";
+
 
 	// カメラの生成と初期化
 	m_camera = new Camera();
@@ -151,6 +215,18 @@ void Game::Update() {
 	m_modelPlayer_->Update(*m_camera);
 	m_modelCube_->Update(*m_camera);
 	m_modelFence_->Update(*m_camera);
+
+	for (uint32_t index = 0; index < kNumInstance; ++index) {
+		Matrix4x4 worldMatrix = MakeAffineMatrix(
+			transform_particles[index].scale,
+			transform_particles[index].rotate,
+			transform_particles[index].translate);
+		Matrix4x4 viewProj = m_camera->GetViewProjectionMatrix();
+		Matrix4x4 wvpMatrix = worldMatrix * viewProj;
+		instancingData_[index].World = worldMatrix;
+		instancingData_[index].WVP = wvpMatrix;
+	}
+
 
 
 	// ImGui UI構成
@@ -213,22 +289,11 @@ void Game::Render() {
 	commandList->RSSetScissorRects(1, &scissor);
 
 	// パイプライン設定 
-	m_pipeline->SetState(commandList);
+	m_pipeline->SetState(commandList,PipelineType::Object3D);
 
 	// ヒープ設定 (ImGui用含む)
     ID3D12DescriptorHeap* heaps[] = { m_srvHeap.GetHeap() };
     commandList->SetDescriptorHeaps(1, heaps);
-
-	// 定数バッファ・描画 (実際の描画処理)
-	// commandList->SetGraphicsRootConstantBufferView(1, m_wvpResource.Get()->GetGPUVirtualAddress());
-	// commandList->IASetVertexBuffers(...)
-	// commandList->DrawInstanced(...)
-
-	// ピクセルシェーダー用マテリアルCBV (Root Parameter Index [0])
-	//commandList->SetGraphicsRootConstantBufferView(0, m_materialResource.Get()->GetGPUVirtualAddress());
-
-	// 頂点シェーダー用定数バッファ設定 (Root Parameter Index [1])
-	//commandList->SetGraphicsRootConstantBufferView(1, m_wvpResource.Get()->GetGPUVirtualAddress());
 
 	// ライト用CBV (Root Parameter Index [3])
 	commandList->SetGraphicsRootConstantBufferView(3, m_directionalLightResource.Get()->GetGPUVirtualAddress());
@@ -247,13 +312,34 @@ void Game::Render() {
 	m_modelCube_->Draw(commandList);
 	m_modelFence_->Draw(commandList);
 
+	// ===================================
+   // Particle描画
+   // ===================================
+	m_pipeline->SetState(commandList, PipelineType::Particle);  // ★ パイプライン切り替え
+
+	// ライト再設定（ルートシグネチャが変わったため）
+	commandList->SetGraphicsRootConstantBufferView(3, m_directionalLightResource.Get()->GetGPUVirtualAddress());
+
+	// マテリアル設定
+	commandList->SetGraphicsRootConstantBufferView(0, m_materialResource.Get()->GetGPUVirtualAddress());
+
+	// StructuredBuffer設定（Root Parameter 1）
+	commandList->SetGraphicsRootDescriptorTable(1, m_instancingSrvHandleGPU);
+
+	// テクスチャ設定（Root Parameter 2）
+	// uvCheckerのハンドルを取得して設定する必要がある
+	const Texture* uvCheckerTexture = TextureManager::GetInstance()->Load("resources/uvChecker.png", commandList);
+	if (uvCheckerTexture) {
+		commandList->SetGraphicsRootDescriptorTable(2, uvCheckerTexture->gpuHandle);
+	}
+
+	// Particle描画
+	commandList->DrawInstanced(UINT(modelDataParticle_.vertices.size()), kNumInstance, 0, 0);
+
 	// ImGui描画
 	ImGui_ImplDX12_RenderDrawData(ImGui::GetDrawData(), commandList);
 
-	// 4. 表示用状態へ遷移 (即座にフラッシュ)
 	context.TransitionResource(backBuffer, D3D12_RESOURCE_STATE_PRESENT, true);
-
-	// 5. コマンドリスト終了と実行
 	context.Finish();
 }
 

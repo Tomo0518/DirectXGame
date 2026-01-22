@@ -10,6 +10,7 @@
 class GraphicsContext;
 class Sphere;
 class Camera;
+struct ModelData;
 
 class Game {
 public:
@@ -36,6 +37,9 @@ private:
 
     // テクスチャリソース
     D3D12_GPU_DESCRIPTOR_HANDLE m_uvCheckerGpuHandle = {};
+    D3D12_GPU_DESCRIPTOR_HANDLE m_instancingSrvHandleGPU{};
+    Microsoft::WRL::ComPtr<ID3D12Resource> m_instancingResource; 
+
     //Microsoft::WRL::ComPtr<ID3D12Resource> m_textureResource2;
 
     DescriptorHeap m_srvHeap;
@@ -60,7 +64,6 @@ private:
     D3D12_VERTEX_BUFFER_VIEW m_vertexBufferViewSprite{};
     D3D12_VERTEX_BUFFER_VIEW m_vertexBufferViewSphere{};
     D3D12_INDEX_BUFFER_VIEW m_indexBufferViewSprite{};
-
 
     // ===================================
 	// オブジェクト
@@ -92,5 +95,12 @@ private:
 
     // ImGui用ディスクリプタヒープ (GraphicsCore側で管理するまでの暫定)
     //Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> m_srvDescriptorHeap;
+
+
+    static const uint32_t kNumInstance = 10;
+    Transform transform_particles[kNumInstance];
+    TransformationMatrix* instancingData_ = nullptr;
+
+    ModelData modelDataParticle_;
 
 };
