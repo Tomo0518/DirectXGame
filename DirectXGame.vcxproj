@@ -101,6 +101,7 @@ if exist "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" copy /y "$(
     <ClCompile Include="externals\imgui\imgui_tables.cpp" />
     <ClCompile Include="externals\imgui\imgui_widgets.cpp" />
     <ClCompile Include="Game.cpp" />
+    <ClCompile Include="GameScene.cpp" />
     <ClCompile Include="GraphicsCore.cpp" />
     <ClCompile Include="GraphicsPipeline.cpp" />
     <ClCompile Include="InputManager.cpp" />
@@ -151,10 +152,12 @@ if exist "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" copy /y "$(
     <ClInclude Include="externals\imgui\imstb_textedit.h" />
     <ClInclude Include="externals\imgui\imstb_truetype.h" />
     <ClInclude Include="Game.h" />
+    <ClInclude Include="GameScene.h" />
     <ClInclude Include="GpuResource.h" />
     <ClInclude Include="GraphicsCore.h" />
     <ClInclude Include="GraphicsPipeline.h" />
     <ClInclude Include="InputManager.h" />
+    <ClInclude Include="IScene.h" />
     <ClInclude Include="LoadMaterialTemplateFile.h" />
     <ClInclude Include="LoadObjFile.h" />
     <ClInclude Include="LoadTexture.h" />

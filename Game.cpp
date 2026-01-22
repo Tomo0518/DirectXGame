@@ -115,7 +115,7 @@ void Game::Initialize() {
     // 2. Modelの生成
     //    Modelクラス側もTextureManagerを使うように修正されている前提です
     //    引数から「ディスクリプタハンドル」が消え、コマンドリストのみを渡します
-    m_modelCube_ = Model::CreateFromOBJ("resources/cube", "cube.obj", commandList);
+    m_modelCube_ = Model::CreateFromOBJ("resources/player", "player.obj", commandList);
 
     // 転送コマンドの実行と待機
     context.Finish(true);
@@ -164,7 +164,6 @@ void Game::Update() {
 
 	// directionalLightData のdirectonを正規化して書き戻す
 	lightData_->direction = Vector3::Normalize(lightData_->direction);
-
 }
 
 void Game::Render() {
