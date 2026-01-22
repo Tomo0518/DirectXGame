@@ -5,9 +5,11 @@
 #include "GraphicsPipeline.h"
 #include "Model.h"
 
+
 // 前方宣言
 class GraphicsContext;
 class Sphere;
+class Camera;
 
 class Game {
 public:
@@ -64,6 +66,9 @@ private:
 	// オブジェクト
 	// ===================================
     Model* m_modelCube_ = nullptr;
+    Model* m_modelPlayer_ = nullptr;
+    
+    Camera* m_camera = nullptr;
 
     //std::unique_ptr<Sphere> m_sphere;
 
@@ -74,7 +79,7 @@ private:
 	// ===================================
     Transform m_transform{ {1.0f,1.0f,1.0f},{0.0f,0.0f,0.0f},{0.0f,0.0f,0.0f} };
     Transform m_transformSprite{ {1.0f,1.0f,1.0f},{0.0f,0.0f,0.0f},{0.0f,0.0f,0.0f} };
-    Transform m_cameraTransform{ {1.0f,1.0f,1.0f},{0.0f,0.0f,0.0f},{0.0f,0.0f,-5.0f} };
+   // Transform m_cameraTransform{ {1.0f,1.0f,1.0f},{0.0f,0.0f,0.0f},{0.0f,0.0f,-5.0f} };
     Transform m_uvTransformSprite{ {1.0f,1.0f,1.0f},{0.0f,0.0f,0.0f},{0.0f,0.0f,0.0f} };
 
     bool m_useMonsterBall = true;

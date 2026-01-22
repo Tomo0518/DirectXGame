@@ -125,6 +125,7 @@ if exist "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" copy /y "$(
     <ClCompile Include="Vector3.cpp" />
     <ClCompile Include="Vector4.cpp" />
     <ClCompile Include="Window.cpp" />
+    <ClCompile Include="WorldTransform.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Affine3D.h" />
@@ -188,6 +189,7 @@ if exist "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" copy /y "$(
     <ClInclude Include="Vector4.h" />
     <ClInclude Include="VertexData.h" />
     <ClInclude Include="Window.h" />
+    <ClInclude Include="WorldTransform.h" />
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="Object3d.PS.hlsl">

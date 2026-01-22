@@ -6,6 +6,7 @@
 #include <format>
 #include "TextureManager.h"
 #include "Sphere.h"
+#include "Camera.h"
 
 // インライン関数などのヘルパーも必要ならここに移動、あるいはUtilityへ
 inline InputManager& Input() { return *InputManager::GetInstance(); }
@@ -112,10 +113,21 @@ void Game::Initialize() {
         m_uvCheckerGpuHandle = uvCheckerTexture->gpuHandle;
     }*/
 
+	// カメラの生成と初期化
+	m_camera = new Camera();
+	m_camera->Initialize();
+	m_camera->SetTranslation({ 0.0f, 1.0f, -10.0f });
+	m_camera->UpdateMatrix();
+
     // 2. Modelの生成
     //    Modelクラス側もTextureManagerを使うように修正されている前提です
     //    引数から「ディスクリプタハンドル」が消え、コマンドリストのみを渡します
-    m_modelCube_ = Model::CreateFromOBJ("resources/player", "player.obj", commandList);
+    m_modelPlayer_ = Model::CreateFromOBJ("resources/player", "player.obj", commandList);
+    m_modelCube_ = Model::CreateFromOBJ("resources/cube", "cube.obj", commandList);
+
+	// 初期位置を設定
+	m_modelPlayer_->GetWorldTransform().translate = { 3.0f, 0.0f, 20.0f };
+	m_modelCube_->GetWorldTransform().translate = { -3.0f, 0.0f, 20.0f };
 
     // 転送コマンドの実行と待機
     context.Finish(true);
@@ -130,24 +142,17 @@ void Game::Update() {
 	ImGui::NewFrame();
 
 	// ゲームロジック
-	if (Input().PushKey(VK_UP)) m_transform.translate.z += 0.1f;
+	/*if (Input().PushKey(VK_UP)) m_transform.translate.z += 0.1f;
 	if (Input().PushKey(VK_DOWN)) m_transform.translate.z -= 0.1f;
 	if (Input().PushKey(VK_LEFT)) m_transform.rotate.y += 0.1f;
-	if (Input().PushKey(VK_RIGHT)) m_transform.rotate.y -= 0.1f;
+	if (Input().PushKey(VK_RIGHT)) m_transform.rotate.y -= 0.1f;*/
 
-	// 行列更新
-	Matrix4x4 worldMatrix = MakeAffineMatrix(m_transform.scale, m_transform.rotate, m_transform.translate);
-	Matrix4x4 cameraMatrix = MakeAffineMatrix(m_cameraTransform.scale, m_cameraTransform.rotate, m_cameraTransform.translate);
-	Matrix4x4 viewMatrix = Matrix4x4::Inverse(cameraMatrix);
-	Matrix4x4 projectionMatrix = Matrix4x4::MakeParspectiveFovMatrix(0.45f, 1280.0f / 720.0f, 0.1f, 100.0f);
-	Matrix4x4 wvpMatrix = Matrix4x4::Multiply(worldMatrix, Matrix4x4::Multiply(viewMatrix, projectionMatrix));
+	m_camera->UpdateDebugCameraMove(1.0f);
+	m_camera->UpdateMatrix();
 
-	// リソース更新
-	TransformationMatrix* wvpData = nullptr;
-	m_wvpResource.Get()->Map(0, nullptr, reinterpret_cast<void**>(&wvpData));
-	wvpData->World = worldMatrix;
-	wvpData->WVP = wvpMatrix;
-	m_wvpResource.Get()->Unmap(0, nullptr);
+	m_modelPlayer_->Update(*m_camera);
+	m_modelCube_->Update(*m_camera);
+
 
 	// ImGui UI構成
 	ImGui::Begin("Debug");
@@ -158,6 +163,12 @@ void Game::Update() {
 	ImGui::ColorEdit4("Light Color", &lightData_->color.x);
 	ImGui::DragFloat3("Light Direction", &lightData_->direction.x, 0.1f);
 	ImGui::DragFloat("Light Intensity", &lightData_->intensity, 0.1f, 0.0f, 10.0f);
+
+	// カメラのデバッグ
+	ImGui::Text("Camera Control");
+	ImGui::DragFloat3("Camera Position", &m_camera->GetTranslation().x, 0.1f);
+	ImGui::DragFloat3("Camera Rotation", &m_camera->GetRotation().x, 0.1f);
+
 	ImGui::End();
 	ImGui::Render();
 
@@ -227,9 +238,13 @@ void Game::Render() {
 
 	// 2. モデルの描画
 	//    PreDraw: 頂点バッファとマテリアル(RootIndex 0)のセット
-	m_modelCube_->PreDraw(commandList);
+	//m_modelCube_->PreDraw(commandList);
 
-	//    Draw: テクスチャ(RootIndex 2)のセットとドローコール
+	////    Draw: テクスチャ(RootIndex 2)のセットとドローコール
+	//m_modelCube_->Draw(commandList);
+
+	//m_modelPlayer_->PreDraw(commandList);
+	m_modelPlayer_->Draw(commandList);
 	m_modelCube_->Draw(commandList);
 
 	// ImGui描画
