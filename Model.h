@@ -46,6 +46,9 @@ public:
         uint32_t rootParameterIndexMaterial = 0,
         uint32_t rootParameterIndexTexture = 2);
 
+	// デバック用のImGui表示
+    void ShowDebugUI(std::string tag);
+
     // WorldTransformへのアクセス
     WorldTransform& GetWorldTransform() { return worldTransform_; }
     const WorldTransform& GetWorldTransform() const { return worldTransform_; }
@@ -56,6 +59,8 @@ public:
     // マテリアルデータへのアクセス
     Material* GetMaterialData() { return materialData_; }
     const Material* GetMaterialData() const { return materialData_; }
+
+    D3D12_GPU_DESCRIPTOR_HANDLE GetTextureSrvHandleGPU() const { return textureSrvHandleGPU_; }
 
 private:
     Model() = default;

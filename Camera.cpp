@@ -35,7 +35,6 @@ void Camera::UpdateProjectionMatrix() {
 }
 
 void Camera::UpdateViewMatrix() {
-    // ★ カメラ用のビュー行列を直接構築する方法
 
     // 1. 回転行列を計算
     Matrix4x4 rotateX = Matrix4x4::MakeRotateXMatrix(rotation_.x);

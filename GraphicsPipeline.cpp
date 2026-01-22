@@ -129,9 +129,8 @@ void GraphicsPipeline::CreatePSO() {
     rasterizerDesc.FillMode = D3D12_FILL_MODE_SOLID;
 
     // 4. Shader Compile
-    //    現在は固定パスですが、将来的に引数で渡せるように拡張可能です
-    Microsoft::WRL::ComPtr<IDxcBlob> vertexShaderBlob = CompileShader(L"Object3D.VS.hlsl", L"vs_6_0");
-    Microsoft::WRL::ComPtr<IDxcBlob> pixelShaderBlob = CompileShader(L"Object3D.PS.hlsl", L"ps_6_0");
+    Microsoft::WRL::ComPtr<IDxcBlob> vertexShaderBlob = CompileShader(L"Particle.VS.hlsl", L"vs_6_0");
+    Microsoft::WRL::ComPtr<IDxcBlob> pixelShaderBlob = CompileShader(L"Particle.PS.hlsl", L"ps_6_0");
 
     // 5. PSO Desc
     D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc = {};

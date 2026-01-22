@@ -67,6 +67,7 @@ private:
 	// ===================================
     Model* m_modelCube_ = nullptr;
     Model* m_modelPlayer_ = nullptr;
+	Model* m_modelFence_ = nullptr;
     
     Camera* m_camera = nullptr;
 

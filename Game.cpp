@@ -8,7 +8,6 @@
 #include "Sphere.h"
 #include "Camera.h"
 
-// インライン関数などのヘルパーも必要ならここに移動、あるいはUtilityへ
 inline InputManager& Input() { return *InputManager::GetInstance(); }
 
 void Game::Initialize() {
@@ -42,8 +41,8 @@ void Game::Initialize() {
     m_directionalLightResource = CreateBufferResource(device, Align256(sizeof(DirectionalLight)));
     m_directionalLightResource.Get()->Map(0, nullptr, reinterpret_cast<void**>(&lightData_));
     lightData_->color = { 1.0f, 1.0f, 1.0f, 1.0f };
-    lightData_->direction = { 0.0f, -1.0f, 0.0f };
-    lightData_->intensity = 1.0f;
+    lightData_->direction = { 0.0f, -0.85f, 0.53f };
+    lightData_->intensity = 2.6f;
 
     // Sprite用リソース
     ResourceObject vertexResourceSprite = CreateBufferResource(device, sizeof(VertexData) * 6);
@@ -69,7 +68,6 @@ void Game::Initialize() {
     // ==================================
     // Sphere用のResourceの生成
     // ==================================
-    // Sphere (あの長い頂点計算ループが消滅！)
     //m_sphere = std::make_unique<Sphere>();
     //m_sphere->Initialize();
 
@@ -120,14 +118,14 @@ void Game::Initialize() {
 	m_camera->UpdateMatrix();
 
     // 2. Modelの生成
-    //    Modelクラス側もTextureManagerを使うように修正されている前提です
-    //    引数から「ディスクリプタハンドル」が消え、コマンドリストのみを渡します
     m_modelPlayer_ = Model::CreateFromOBJ("resources/player", "player.obj", commandList);
     m_modelCube_ = Model::CreateFromOBJ("resources/cube", "cube.obj", commandList);
+	m_modelFence_ = Model::CreateFromOBJ("resources/fence", "fence.obj", commandList);
 
 	// 初期位置を設定
-	m_modelPlayer_->GetWorldTransform().translate = { 3.0f, 0.0f, 20.0f };
-	m_modelCube_->GetWorldTransform().translate = { -3.0f, 0.0f, 20.0f };
+	m_modelPlayer_->GetWorldTransform().translate = { 3.0f, 0.0f, 0.0f };
+	m_modelCube_->GetWorldTransform().translate = { -3.0f, 0.0f, 0.0f };
+	m_modelFence_->GetWorldTransform().translate = { 0.0f, 0.0f, 0.0f };
 
     // 転送コマンドの実行と待機
     context.Finish(true);
@@ -143,15 +141,16 @@ void Game::Update() {
 
 	// ゲームロジック
 	/*if (Input().PushKey(VK_UP)) m_transform.translate.z += 0.1f;
-	if (Input().PushKey(VK_DOWN)) m_transform.translate.z -= 0.1f;
-	if (Input().PushKey(VK_LEFT)) m_transform.rotate.y += 0.1f;
-	if (Input().PushKey(VK_RIGHT)) m_transform.rotate.y -= 0.1f;*/
+	if (Input().PushKey(VK_DOWN)) m_transform.translate.z -= 0.1f;*/
+	if (Input().PushKey(VK_LEFT)) m_modelPlayer_->GetWorldTransform().rotate.y += 0.1f;
+	if (Input().PushKey(VK_RIGHT)) m_modelPlayer_->GetWorldTransform().rotate.y -= 0.1f;
 
 	m_camera->UpdateDebugCameraMove(1.0f);
 	m_camera->UpdateMatrix();
 
 	m_modelPlayer_->Update(*m_camera);
 	m_modelCube_->Update(*m_camera);
+	m_modelFence_->Update(*m_camera);
 
 
 	// ImGui UI構成
@@ -168,6 +167,12 @@ void Game::Update() {
 	ImGui::Text("Camera Control");
 	ImGui::DragFloat3("Camera Position", &m_camera->GetTranslation().x, 0.1f);
 	ImGui::DragFloat3("Camera Rotation", &m_camera->GetRotation().x, 0.1f);
+
+	m_modelPlayer_->ShowDebugUI("Player Model");
+	m_modelFence_->ShowDebugUI("Fence Model");
+
+	ImGui::Text("Player Texture Handle: %llu", m_modelPlayer_->GetTextureSrvHandleGPU().ptr);
+	ImGui::Text("Fence Texture Handle: %llu", m_modelFence_->GetTextureSrvHandleGPU().ptr);
 
 	ImGui::End();
 	ImGui::Render();
@@ -220,10 +225,10 @@ void Game::Render() {
 	// commandList->DrawInstanced(...)
 
 	// ピクセルシェーダー用マテリアルCBV (Root Parameter Index [0])
-	commandList->SetGraphicsRootConstantBufferView(0, m_materialResource.Get()->GetGPUVirtualAddress());
+	//commandList->SetGraphicsRootConstantBufferView(0, m_materialResource.Get()->GetGPUVirtualAddress());
 
 	// 頂点シェーダー用定数バッファ設定 (Root Parameter Index [1])
-	commandList->SetGraphicsRootConstantBufferView(1, m_wvpResource.Get()->GetGPUVirtualAddress());
+	//commandList->SetGraphicsRootConstantBufferView(1, m_wvpResource.Get()->GetGPUVirtualAddress());
 
 	// ライト用CBV (Root Parameter Index [3])
 	commandList->SetGraphicsRootConstantBufferView(3, m_directionalLightResource.Get()->GetGPUVirtualAddress());
@@ -237,15 +242,10 @@ void Game::Render() {
 	commandList->SetGraphicsRootDescriptorTable(2, textureSrvHandleGPU);
 
 	// 2. モデルの描画
-	//    PreDraw: 頂点バッファとマテリアル(RootIndex 0)のセット
-	//m_modelCube_->PreDraw(commandList);
-
-	////    Draw: テクスチャ(RootIndex 2)のセットとドローコール
-	//m_modelCube_->Draw(commandList);
-
 	//m_modelPlayer_->PreDraw(commandList);
 	m_modelPlayer_->Draw(commandList);
 	m_modelCube_->Draw(commandList);
+	m_modelFence_->Draw(commandList);
 
 	// ImGui描画
 	ImGui_ImplDX12_RenderDrawData(ImGui::GetDrawData(), commandList);

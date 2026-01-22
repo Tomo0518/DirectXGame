@@ -216,3 +216,18 @@ void Model::Draw(
         0,  // 開始頂点インデックス
         0); // 開始インスタンスインデックス
 }
+
+void Model::ShowDebugUI(std::string tag) {
+    if (ImGui::TreeNode(tag.c_str())) {
+        ImGui::DragFloat3("Position", &worldTransform_.translate.x, 0.1f);
+        ImGui::DragFloat3("Rotation", &worldTransform_.rotate.x, 0.1f);
+        ImGui::DragFloat3("Scale", &worldTransform_.scale.x, 0.1f);
+
+        // マテリアル情報の表示
+        ImGui::Separator();
+        ImGui::Text("Material:");
+        ImGui::ColorEdit4("Color", reinterpret_cast<float*>(&materialData_->color));
+        ImGui::Checkbox("Enable Lighting", reinterpret_cast<bool*>(&materialData_->enableLighting));
+        ImGui::TreePop();
+    }
+}
