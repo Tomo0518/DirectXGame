@@ -3,11 +3,15 @@
 #include <memory>
 #include <vector>
 #include "GraphicsPipeline.h"
+
 #include "Model.h"
 #include "MapChipField.h"
+
 #include "Player.h"
+#include "Enemy.h"
 #include "Skydome.h"
 #include "CameraController.h"
+
 
 // 前方宣言
 class GraphicsContext;
@@ -79,7 +83,6 @@ private:
     Model* modelPlayer_ = nullptr;
     Model* modelSkydome_ = nullptr;
 	Model* modelFence_ = nullptr;
-    
 
 	bool isDebugCameraActive_ = false;
     Camera* camera_ = nullptr;
@@ -93,7 +96,10 @@ private:
 	// ===================================
     // プレイヤー
 	// ===================================
-	Player player_;
+	std::unique_ptr<Player> player_;
+
+	Model* modelEnemy_ = nullptr;
+	std::unique_ptr<Enemy> enemy_;
 
     // ==================================
     // スカイドーム
@@ -123,6 +129,7 @@ private:
 	// ===================================
     // マップチップ用ブロック
 	// ===================================
+	WorldTransform blockTransform_;
 	std::unique_ptr<MapChipField> mapChipField_;
     std::vector<std::vector<WorldTransform*>> worldTransformBlocks_;
 };

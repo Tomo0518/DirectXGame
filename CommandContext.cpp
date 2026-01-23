@@ -81,6 +81,9 @@ void CommandContext::Initialize()
 
     ID3D12CommandAllocator* initialAllocator = queue->RequestAllocator();
 
+    // =============================
+	// コマンドリストを作成
+	// =============================
     HRESULT hr = device->CreateCommandList(
         0, m_type, initialAllocator, nullptr, IID_PPV_ARGS(&m_commandListPtr));
     assert(SUCCEEDED(hr));

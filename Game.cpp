@@ -109,7 +109,7 @@ void Game::Initialize() {
 		instancingData_[index].World = Matrix4x4::MakeIdentity4x4();
 	}
 
-	// ★ DescriptorHeapから自動割り当て
+	// DescriptorHeapから自動割り当て
 	auto [instancingSrvHandleCPU, instancingSrvHandleGPU] = m_srvHeap.Allocate();
 
 	// StructuredBuffer用のSRV設定
@@ -197,27 +197,40 @@ void Game::Initialize() {
 	modelFence_ = Model::CreateFromOBJ("resources/fence", "fence.obj", commandList);
 
 	// 初期位置を設定
-	modelPlayer_->GetWorldTransform().translation_ = { 10.0f, 10.0f, 0.0f };
+	/*modelPlayer_->GetWorldTransform().translation_ = { 10.0f, 10.0f, 0.0f };
 	modelCube_->GetWorldTransform().translation_ = { -3.0f, 0.0f, 0.0f };
-	modelFence_->GetWorldTransform().translation_ = { 0.0f, 0.0f, 0.0f };
+	modelFence_->GetWorldTransform().translation_ = { 0.0f, 0.0f, 0.0f };*/
+
+	blockTransform_.Initialize(device);
 
 	// ==================================
-	// 7. マップチップ用ブロック生成
+	// マップチップ用ブロック生成
 	// ==================================
 	mapChipField_ = std::make_unique<MapChipField>();
 	mapChipField_->LoadMapChipCsv("./resources/mapChip/blocks.csv");
 	GenerateBlocks();
 
-	Vector3 playerPositon = mapChipField_->GetMapChipPositionByIndex(3, 14);
-	player_.Initialize(modelPlayer_, camera_, playerPositon);
-	player_.SetMapChipField(mapChipField_.get());
+	// ==================================
+	// プレイヤー初期化
+	// ==================================
+	Vector3 playerPositon = mapChipField_->GetMapChipPositionByIndex(3, 17);
+	player_ = std::make_unique<Player>();
+	player_->Initialize(modelPlayer_, camera_, playerPositon);
+	player_->SetMapChipField(mapChipField_.get());
 
 	skydome_ = std::make_unique<Skydome>();
 	skydome_->Initialize(modelSkydome_, camera_);
 
-
 	// カメラコントローラーにプレイヤーをセット
-	cameraController_->SetTarget(&player_);
+	cameraController_->SetTarget(player_.get());
+
+	// ==================================
+	// Enemy初期化
+	// ==================================
+	enemy_ = std::make_unique<Enemy>();
+	modelEnemy_ = Model::CreateFromOBJ("resources/enemy", "enemy.obj", commandList);
+	Vector3 enemyPosition = mapChipField_->GetMapChipPositionByIndex(4, 17);
+	enemy_->Initialize(modelEnemy_, enemyPosition);
 
     // 転送コマンドの実行と待機
     context.Finish(true);
@@ -234,13 +247,12 @@ void Game::Update() {
 	// ゲームロジック
 	/*if (Input().PushKey(VK_UP)) m_transform.translate.z += 0.1f;
 	if (Input().PushKey(VK_DOWN)) m_transform.translate.z -= 0.1f;*/
-	if (Input().PushKey(VK_LEFT)) modelPlayer_->GetWorldTransform().rotation_.y += 0.1f;
-	if (Input().PushKey(VK_RIGHT)) modelPlayer_->GetWorldTransform().rotation_.y -= 0.1f;
+	/*if (Input().PushKey(VK_LEFT)) modelPlayer_->GetWorldTransform().rotation_.y += 0.1f;
+	if (Input().PushKey(VK_RIGHT)) modelPlayer_->GetWorldTransform().rotation_.y -= 0.1f;*/
 
 	// ===================================
 	// カメラ更新
 	// ===================================
-
 	if(isDebugCameraActive_) {
 		debugCamera_->UpdateDebugCameraMove(1.0f);
 		debugCamera_->UpdateMatrix();
@@ -250,15 +262,12 @@ void Game::Update() {
 		cameraController_->GetCamera()->UpdateViewMatrix();
 	}
 
-	modelPlayer_->Update(*camera_);
-	modelCube_->Update(*camera_);
-	modelFence_->Update(*camera_);
-
 	// スカイドーム更新
 	skydome_->Update();
 
 	// プレイヤー更新
-	player_.Update(*camera_);
+	player_->Update(*camera_);
+	enemy_->Update(*camera_);
 
 	for (uint32_t index = 0; index < kNumInstance; ++index) {
 		Matrix4x4 worldMatrix = MakeAffineMatrix(
@@ -296,8 +305,10 @@ void Game::Update() {
 	ImGui::DragFloat3("Camera Position", &camera_->GetTranslation().x, 0.1f);
 	ImGui::DragFloat3("Camera Rotation", &camera_->GetRotation().x, 0.1f);
 
-	modelPlayer_->ShowDebugUI("Player Model");
+	player_->GetModel()->ShowDebugUI("Player Model");
 	modelFence_->ShowDebugUI("Fence Model");
+	modelCube_->ShowDebugUI("Cube Model");
+	modelEnemy_->ShowDebugUI("Enemy Model");
 
 	ImGui::Text("Player Texture Handle: %llu", modelPlayer_->GetTextureSrvHandleGPU().ptr);
 	ImGui::Text("Fence Texture Handle: %llu", modelFence_->GetTextureSrvHandleGPU().ptr);
@@ -384,16 +395,11 @@ void Game::Render() {
 
 	// 2. モデルの描画
 	//modelPlayer_->PreDraw(commandList);
-	modelPlayer_->Draw(commandList);
-	modelCube_->Draw(commandList);
+	//modelCube_->Draw(commandList, blockTransform_);
+	//modelFence_->Draw(commandList, blockTransform_);
 
-	modelCube_->GetWorldTransform().translation_.x += 1.0f;
-	modelCube_->Draw(commandList);
-	modelCube_->GetWorldTransform().translation_.x -= 1.0f;
-
-	modelFence_->Draw(commandList);
-
-	player_.Draw(commandList);
+	player_->Draw(commandList);
+	enemy_->Draw(commandList);
 
 	// ===================================
    // Particle描画

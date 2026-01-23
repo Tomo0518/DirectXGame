@@ -94,6 +94,7 @@ if exist "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" copy /y "$(
     <ClCompile Include="DescriptorHeap.cpp" />
     <ClCompile Include="DescriptorHeapHelper.cpp" />
     <ClCompile Include="DescriptorUtility.cpp" />
+    <ClCompile Include="Enemy.cpp" />
     <ClCompile Include="externals\imgui\imgui.cpp" />
     <ClCompile Include="externals\imgui\imgui_demo.cpp" />
     <ClCompile Include="externals\imgui\imgui_draw.cpp" />
@@ -149,6 +150,7 @@ if exist "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" copy /y "$(
     <ClInclude Include="DescriptorUtility.h" />
     <ClInclude Include="DirectionalLight.h" />
     <ClInclude Include="Easing.h" />
+    <ClInclude Include="Enemy.h" />
     <ClInclude Include="externals\imgui\imconfig.h" />
     <ClInclude Include="externals\imgui\imgui.h" />
     <ClInclude Include="externals\imgui\imgui_impl_dx12.h" />

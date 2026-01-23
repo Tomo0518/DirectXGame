@@ -9,6 +9,8 @@
 
 class Model {
 public:
+    Model() = default;
+
     /// <summary>
     /// OBJファイルからモデルを生成（テクスチャはTextureManagerで管理）
     /// </summary>
@@ -20,18 +22,18 @@ public:
     /// <summary>
     /// OBJファイルからモデルを生成（レガシー版：手動でSRVハンドルを指定）
     /// </summary>
-    static Model* CreateFromOBJ(
+  /*  static Model* CreateFromOBJ(
         const std::string& directoryPath,
         const std::string& filename,
         ID3D12GraphicsCommandList* commandList,
         D3D12_CPU_DESCRIPTOR_HANDLE srvCpuHandle,
-        D3D12_GPU_DESCRIPTOR_HANDLE srvGpuHandle);
+        D3D12_GPU_DESCRIPTOR_HANDLE srvGpuHandle);*/
 
     /// <summary>
     /// モデルの更新（Transform行列の計算）
     /// </summary>
     /// <param name="camera">カメラ</param>
-    void Update(const Camera& camera);
+   // void Update(const Camera& camera);
 
     /// <summary>
     /// モデルの描画
@@ -40,11 +42,11 @@ public:
     /// <param name="rootParameterIndexWVP">WVPのルートパラメータインデックス</param>
     /// <param name="rootParameterIndexMaterial">マテリアルのルートパラメータインデックス</param>
     /// <param name="rootParameterIndexTexture">テクスチャのルートパラメータインデックス</param>
-    void Draw(
+ /*   void Draw(
         ID3D12GraphicsCommandList* commandList,
         uint32_t rootParameterIndexWVP = 1,
         uint32_t rootParameterIndexMaterial = 0,
-        uint32_t rootParameterIndexTexture = 2);
+        uint32_t rootParameterIndexTexture = 2);*/
 
     /// <summary>
     /// 描画
@@ -63,8 +65,8 @@ public:
     void ShowDebugUI(std::string tag);
 
     // WorldTransformへのアクセス
-    WorldTransform& GetWorldTransform() { return worldTransform_; }
-    const WorldTransform& GetWorldTransform() const { return worldTransform_; }
+   /* WorldTransform& GetWorldTransform() { return worldTransform_; }
+    const WorldTransform& GetWorldTransform() const { return worldTransform_; }*/
 
     // モデルデータへのアクセス
     const ModelData& GetModelData() const { return modelData_; }
@@ -75,8 +77,11 @@ public:
 
     D3D12_GPU_DESCRIPTOR_HANDLE GetTextureSrvHandleGPU() const { return textureSrvHandleGPU_; }
 
+    //void SetExternalWorldTransform(WorldTransform* externalTransform) {
+    //    externalWorldTransform_ = externalTransform;
+    //}
+
 private:
-    Model() = default;
 
     /// <summary>
     /// モデルの初期化（TextureManager使用版）
@@ -94,6 +99,7 @@ private:
         D3D12_CPU_DESCRIPTOR_HANDLE srvCpuHandle,
         D3D12_GPU_DESCRIPTOR_HANDLE srvGpuHandle);
 
+	
 private:
     // モデルデータ
     ModelData modelData_;
@@ -111,7 +117,7 @@ private:
     D3D12_GPU_DESCRIPTOR_HANDLE textureSrvHandleGPU_{};
 
     // Transform（各モデル固有）
-    WorldTransform worldTransform_;
+	//WorldTransform* externalWorldTransform_; // 外部から渡されたTransformを使う場合用
 
     // アップロード用中間リソース
     std::vector<ResourceObject> intermediateResources_;

@@ -259,6 +259,9 @@
     <Filter Include="ソース ファイル\AL2\Skydome">
       <UniqueIdentifier>{5c08cf72-2880-4f9a-924e-0fc636284e57}</UniqueIdentifier>
     </Filter>
+    <Filter Include="ソース ファイル\AL2\Enemy">
+      <UniqueIdentifier>{07e0936c-7796-49ef-b82d-c8881392f971}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -404,6 +407,9 @@
     </ClCompile>
     <ClCompile Include="Skydome.cpp">
       <Filter>ソース ファイル\AL2\Skydome</Filter>
+    </ClCompile>
+    <ClCompile Include="Enemy.cpp">
+      <Filter>ソース ファイル\AL2\Enemy</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -604,6 +610,9 @@
     </ClInclude>
     <ClInclude Include="Skydome.h">
       <Filter>ソース ファイル\AL2\Skydome</Filter>
+    </ClInclude>
+    <ClInclude Include="Enemy.h">
+      <Filter>ソース ファイル\AL2\Enemy</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

@@ -527,7 +527,8 @@ void Player::ApplyCollisionResult(const CollisionMapInfo& info) {
 //////////////////////////////////////////////////////
 void Player::Draw(ID3D12GraphicsCommandList* list) {
 	// 描画処理
-	model_->Draw(list,worldTransform_);
+	//model_->Draw(list,worldTransform_);
+	model_->Draw(list, worldTransform_);
 }
 
 // ================================

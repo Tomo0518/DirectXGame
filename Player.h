@@ -43,7 +43,6 @@ public:
 
 	// マップチップ衝突判定
 	void MapChipCollisionCheck(CollisionMapInfo& info);
-
 	// 上方向衝突判定関数
 	void CeilingCollisionCheck(CollisionMapInfo& info);
 	// 下方向衝突判定関数
@@ -78,6 +77,7 @@ public:
 	const Vector3& GetVelocity() const { return velocity_; }
 	const bool GetOnGround() const { return onGround_; }
 
+	Model* GetModel() const { return model_; }
 private:
 	// ワールドトランスフォーム
 	WorldTransform worldTransform_;
