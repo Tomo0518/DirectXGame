@@ -6,10 +6,13 @@
 #include "Model.h"
 #include "MapChipField.h"
 #include "Player.h"
+#include "Skydome.h"
+#include "CameraController.h"
 
 // 前方宣言
 class GraphicsContext;
 class Sphere;
+class CameraController;
 class Camera;
 struct ModelData;
 
@@ -72,17 +75,27 @@ private:
     // ===================================
 	// オブジェクト
 	// ===================================
-    Model* m_modelCube_ = nullptr;
-    Model* m_modelPlayer_ = nullptr;
-	Model* m_modelFence_ = nullptr;
+    Model* modelCube_ = nullptr;
+    Model* modelPlayer_ = nullptr;
+    Model* modelSkydome_ = nullptr;
+	Model* modelFence_ = nullptr;
     
-    Camera* m_camera = nullptr;
+    Camera* camera_ = nullptr;
+    std::unique_ptr<CameraController> cameraController_ = nullptr;
 
     //std::unique_ptr<Sphere> m_sphere;
 
     DirectionalLight* lightData_{};
 
-	Player m_player;
+	// ===================================
+    // プレイヤー
+	// ===================================
+	Player player_;
+
+    // ==================================
+    // スカイドーム
+    // ==================================
+    std::unique_ptr<Skydome> skydome_ = nullptr;
 
 	// ===================================
     // ゲーム内変数
@@ -92,8 +105,8 @@ private:
    // Transform m_cameraTransform{ {1.0f,1.0f,1.0f},{0.0f,0.0f,0.0f},{0.0f,0.0f,-5.0f} };
     Transform m_uvTransformSprite{ {1.0f,1.0f,1.0f},{0.0f,0.0f,0.0f},{0.0f,0.0f,0.0f} };
 
-    bool m_useMonsterBall = true;
-    float m_materialColor[4] = { 1.0f,1.0f,1.0f,1.0f };
+    bool useMonsterBall_ = true;
+    float materialColor_[4] = { 1.0f,1.0f,1.0f,1.0f };
 
     // モデルデータ
     //ModelData m_objModelData;
@@ -103,7 +116,6 @@ private:
     TransformationMatrix* instancingData_ = nullptr;
 
     ModelData modelDataParticle_;
-
 
 	// ===================================
     // マップチップ用ブロック

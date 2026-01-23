@@ -83,6 +83,7 @@ if exist "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" copy /y "$(
   <ItemGroup>
     <ClCompile Include="Affine3D.cpp" />
     <ClCompile Include="Camera.cpp" />
+    <ClCompile Include="CameraController.cpp" />
     <ClCompile Include="ColorBuffer.cpp" />
     <ClCompile Include="CommandContext.cpp" />
     <ClCompile Include="CommandListManager.cpp" />
@@ -118,6 +119,7 @@ if exist "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" copy /y "$(
     <ClCompile Include="RendererDX12.cpp" />
     <ClCompile Include="ResourceObject.cpp" />
     <ClCompile Include="ResourcesUtility.cpp" />
+    <ClCompile Include="Skydome.cpp" />
     <ClCompile Include="Sphere.cpp" />
     <ClCompile Include="TextureManager.cpp" />
     <ClCompile Include="TomoEngine.cpp" />
@@ -131,6 +133,7 @@ if exist "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" copy /y "$(
   <ItemGroup>
     <ClInclude Include="Affine3D.h" />
     <ClInclude Include="Camera.h" />
+    <ClInclude Include="CameraController.h" />
     <ClInclude Include="ColorBuffer.h" />
     <ClInclude Include="CommandContext.h" />
     <ClInclude Include="CommandListManager.h" />
@@ -181,6 +184,7 @@ if exist "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" copy /y "$(
     <ClInclude Include="ResourceObject.h" />
     <ClInclude Include="ResourcesIncludes.h" />
     <ClInclude Include="ResourcesUtility.h" />
+    <ClInclude Include="Skydome.h" />
     <ClInclude Include="Sphere.h" />
     <ClInclude Include="TextureManager.h" />
     <ClInclude Include="TomoEngine.h" />

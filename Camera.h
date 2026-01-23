@@ -1,7 +1,10 @@
 #pragma once
 #include "TomoEngine.h"
 
+class CameraController;
+
 class Camera {
+	friend class CameraController;
 public:
 	Camera();
 	~Camera() = default;
