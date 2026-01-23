@@ -15,6 +15,9 @@ void Skydome::Initialize(Model* model, Camera* camera) {
 	worldTransform_.translation_ = { 0.0f, 0.0f, 0.0f };
 }
 
-void Skydome::Update() { worldTransform_.UpdateMatrix(*camera_); }
+void Skydome::Update() { 	// カメラの位置に追従させる
+	worldTransform_.translation_ = camera_->GetTranslation();
+	worldTransform_.UpdateMatrix(*camera_);
+}
 
-void Skydome::Draw(ID3D12GraphicsCommandList* list) { model_->Draw(list); }
+void Skydome::Draw(ID3D12GraphicsCommandList* list) { model_->Draw(list,worldTransform_); }

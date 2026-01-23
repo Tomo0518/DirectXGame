@@ -214,7 +214,6 @@ void Game::Initialize() {
 
     // 転送コマンドの実行と待機
     context.Finish(true);
-
 }
 
 void Game::Update() {
@@ -348,9 +347,9 @@ void Game::Render() {
 	commandList->SetGraphicsRootDescriptorTable(2, textureSrvHandleGPU);
 
 
-	///
-	/// ↓描画処理ここから
-	///
+	////// -------------------- //////
+	////// ↓描画処理ここから	    //////
+	////// -------------------- //////
 	
 	// スカイドームの描画(背景)
 	skydome_->Draw(commandList);
