@@ -46,6 +46,19 @@ public:
         uint32_t rootParameterIndexMaterial = 0,
         uint32_t rootParameterIndexTexture = 2);
 
+    /// <summary>
+    /// 描画
+    /// </summary>
+    /// <param name="worldTransform">ワールドトランスフォーム</param>
+    /// <param name="camera">カメラ</param>
+    /// <param name="objectColor">オブジェクトカラー</param>
+    void Draw(
+        ID3D12GraphicsCommandList* commandList,
+        const WorldTransform& worldTransform,
+        uint32_t rootParameterIndexWVP = 1,
+        uint32_t rootParameterIndexMaterial = 0,
+        uint32_t rootParameterIndexTexture = 2);
+
 	// デバック用のImGui表示
     void ShowDebugUI(std::string tag);
 

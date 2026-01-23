@@ -16,7 +16,7 @@ void WorldTransform::Initialize(ID3D12Device* device) {
 
 void WorldTransform::UpdateMatrix(const Camera& camera) {
     // ワールド行列を計算
-    Matrix4x4 worldMatrix = MakeAffineMatrix(scale, rotate, translate);
+    Matrix4x4 worldMatrix = MakeAffineMatrix(scale_, rotation_, translation_);
 
     // カメラからViewProjection行列を取得
     Matrix4x4 viewProjectionMatrix = camera.GetViewProjectionMatrix();

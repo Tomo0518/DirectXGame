@@ -178,7 +178,7 @@ void Game::Initialize() {
 	// カメラの生成と初期化
 	m_camera = new Camera();
 	m_camera->Initialize();
-	m_camera->SetTranslation({ 0.0f, 1.0f, -10.0f });
+	m_camera->SetTranslation({ 10.0f, 1.0f, -10.0f });
 	m_camera->UpdateMatrix();
 
     // 2. Modelの生成
@@ -187,12 +187,23 @@ void Game::Initialize() {
 	m_modelFence_ = Model::CreateFromOBJ("resources/fence", "fence.obj", commandList);
 
 	// 初期位置を設定
-	m_modelPlayer_->GetWorldTransform().translate = { 3.0f, 0.0f, 0.0f };
-	m_modelCube_->GetWorldTransform().translate = { -3.0f, 0.0f, 0.0f };
-	m_modelFence_->GetWorldTransform().translate = { 0.0f, 0.0f, 0.0f };
+	m_modelPlayer_->GetWorldTransform().translation_ = { 10.0f, 10.0f, 0.0f };
+	m_modelCube_->GetWorldTransform().translation_ = { -3.0f, 0.0f, 0.0f };
+	m_modelFence_->GetWorldTransform().translation_ = { 0.0f, 0.0f, 0.0f };
+
+	Vector3 playerPositon = mapChipField_->GetMapChipPositionByIndex(3, 14);
+	m_player.Initialize(m_modelPlayer_, m_camera, playerPositon);
+	m_player.SetMapChipField(mapChipField_.get());
 
     // 転送コマンドの実行と待機
     context.Finish(true);
+
+	// ==================================
+	// 7. マップチップ用ブロック生成
+	// ==================================
+	mapChipField_ = std::make_unique<MapChipField>();
+	mapChipField_->LoadMapChipCsv("./resources/mapChip/blocks.csv");
+	GenerateBlocks();
 }
 
 void Game::Update() {
@@ -206,15 +217,18 @@ void Game::Update() {
 	// ゲームロジック
 	/*if (Input().PushKey(VK_UP)) m_transform.translate.z += 0.1f;
 	if (Input().PushKey(VK_DOWN)) m_transform.translate.z -= 0.1f;*/
-	if (Input().PushKey(VK_LEFT)) m_modelPlayer_->GetWorldTransform().rotate.y += 0.1f;
-	if (Input().PushKey(VK_RIGHT)) m_modelPlayer_->GetWorldTransform().rotate.y -= 0.1f;
+	if (Input().PushKey(VK_LEFT)) m_modelPlayer_->GetWorldTransform().rotation_.y += 0.1f;
+	if (Input().PushKey(VK_RIGHT)) m_modelPlayer_->GetWorldTransform().rotation_.y -= 0.1f;
 
-	m_camera->UpdateDebugCameraMove(1.0f);
+	//m_camera->UpdateDebugCameraMove(1.0f);
 	m_camera->UpdateMatrix();
 
 	m_modelPlayer_->Update(*m_camera);
 	m_modelCube_->Update(*m_camera);
 	m_modelFence_->Update(*m_camera);
+
+	// プレイヤー更新
+	m_player.Update();
 
 	for (uint32_t index = 0; index < kNumInstance; ++index) {
 		Matrix4x4 worldMatrix = MakeAffineMatrix(
@@ -227,7 +241,14 @@ void Game::Update() {
 		instancingData_[index].WVP = wvpMatrix;
 	}
 
-
+	for (std::vector<WorldTransform*>& worldTransFomBlockLine : worldTransformBlocks_) {
+		for (WorldTransform* worldTransformBlock : worldTransFomBlockLine) {
+			if (!worldTransformBlock) {
+				continue;
+			}
+			worldTransformBlock->UpdateMatrix(*m_camera);
+		}
+	}
 
 	// ImGui UI構成
 	ImGui::Begin("Debug");
@@ -306,16 +327,39 @@ void Game::Render() {
 	textureSrvHandleGPU.ptr += descriptorSize;
 	commandList->SetGraphicsRootDescriptorTable(2, textureSrvHandleGPU);
 
+
+	///
+	/// ↓描画処理ここから
+	///
+
+	// ブロックの描画
+	for (std::vector<WorldTransform*> worldTransformBlockLine : worldTransformBlocks_) {
+		for (WorldTransform* worldTransformBlock : worldTransformBlockLine) {
+			if (!worldTransformBlock) {
+				continue;
+			}
+
+			m_modelCube_->Draw(commandList, *worldTransformBlock);
+		}
+	}
+
 	// 2. モデルの描画
 	//m_modelPlayer_->PreDraw(commandList);
 	m_modelPlayer_->Draw(commandList);
 	m_modelCube_->Draw(commandList);
+
+	m_modelCube_->GetWorldTransform().translation_.x += 1.0f;
+	m_modelCube_->Draw(commandList);
+	m_modelCube_->GetWorldTransform().translation_.x -= 1.0f;
+
 	m_modelFence_->Draw(commandList);
+
+	m_player.Draw(commandList);
 
 	// ===================================
    // Particle描画
    // ===================================
-	m_pipeline->SetState(commandList, PipelineType::Particle);  // ★ パイプライン切り替え
+	m_pipeline->SetState(commandList, PipelineType::Particle);  // パイプライン切り替え
 
 	// ライト再設定（ルートシグネチャが変わったため）
 	commandList->SetGraphicsRootConstantBufferView(3, m_directionalLightResource.Get()->GetGPUVirtualAddress());
@@ -356,4 +400,32 @@ void Game::Shutdown() {
 	ImGui::DestroyContext();
 
 	// リソースはComPtrやResourceObjectデストラクタで解放される
+}
+
+void Game::GenerateBlocks() {
+	// 要素数
+	uint32_t numBlockVirtical = mapChipField_->GetNumBlockVertical();
+	uint32_t numBlockHorizontal = mapChipField_->GetNumBlockHorizontal();
+
+	worldTransformBlocks_.resize(numBlockVirtical);
+	for (uint32_t i = 0; i < numBlockVirtical; ++i) {
+		worldTransformBlocks_[i].resize(numBlockHorizontal);
+	}
+
+	// ブロックの生成
+	for (uint32_t vp = 0; vp < numBlockVirtical; ++vp) {
+		for (uint32_t hp = 0; hp < numBlockHorizontal; ++hp) {
+			MapChipType mapChipType = mapChipField_->GetMapChipTypeByIndex(hp, vp);
+			if (mapChipType == MapChipType::kBlank) {
+				// ブロック無し
+				worldTransformBlocks_[vp][hp] = nullptr;
+				continue;
+			}
+			// ブロック有り
+			worldTransformBlocks_[vp][hp] = new WorldTransform();
+			worldTransformBlocks_[vp][hp]->Initialize(GraphicsCore::GetInstance()->GetDevice());
+			Vector3 blockPosition = mapChipField_->GetMapChipPositionByIndex(hp, vp);
+			worldTransformBlocks_[vp][hp]->translation_ = blockPosition;
+		}
+	}
 }

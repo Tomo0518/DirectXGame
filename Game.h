@@ -4,7 +4,8 @@
 #include <vector>
 #include "GraphicsPipeline.h"
 #include "Model.h"
-
+#include "MapChipField.h"
+#include "Player.h"
 
 // 前方宣言
 class GraphicsContext;
@@ -32,6 +33,11 @@ public:
 
 private:
 
+	// マップチップ用ブロック生成
+    void GenerateBlocks();
+
+private:
+
 	// グラフィックスパイプライン
     std::unique_ptr<GraphicsPipeline> m_pipeline;
 
@@ -45,8 +51,6 @@ private:
     DescriptorHeap m_srvHeap;
 
     // モデル・スプライト・球体などのリソース
-    // ※ 本来は Model クラス等に隠蔽すべきですが、
-    //    移行フェーズのため main.cpp の変数をここに移動させます
     ResourceObject m_vertexResource;
     ResourceObject m_vertexResourceSprite;
     ResourceObject m_indexResource;
@@ -78,6 +82,8 @@ private:
 
     DirectionalLight* lightData_{};
 
+	Player m_player;
+
 	// ===================================
     // ゲーム内変数
 	// ===================================
@@ -92,15 +98,16 @@ private:
     // モデルデータ
     //ModelData m_objModelData;
 
-
-    // ImGui用ディスクリプタヒープ (GraphicsCore側で管理するまでの暫定)
-    //Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> m_srvDescriptorHeap;
-
-
     static const uint32_t kNumInstance = 10;
     Transform transform_particles[kNumInstance];
     TransformationMatrix* instancingData_ = nullptr;
 
     ModelData modelDataParticle_;
 
+
+	// ===================================
+    // マップチップ用ブロック
+	// ===================================
+	std::unique_ptr<MapChipField> mapChipField_;
+    std::vector<std::vector<WorldTransform*>> worldTransformBlocks_;
 };

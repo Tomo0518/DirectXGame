@@ -217,11 +217,41 @@ void Model::Draw(
         0); // 開始インスタンスインデックス
 }
 
+
+void Model::Draw(
+    ID3D12GraphicsCommandList* commandList,
+    const WorldTransform& worldTransform,
+    uint32_t rootParameterIndexWVP,
+    uint32_t rootParameterIndexMaterial,
+    uint32_t rootParameterIndexTexture)
+{
+    commandList->IASetVertexBuffers(0, 1, &vertexBufferView_);
+    commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
+    commandList->SetGraphicsRootConstantBufferView(
+        rootParameterIndexMaterial,
+        materialResource_.Get()->GetGPUVirtualAddress());
+
+    // 外部のWorldTransformを直接使う（コピーしない）
+    commandList->SetGraphicsRootConstantBufferView(
+        rootParameterIndexWVP,
+        worldTransform.GetGPUVirtualAddress());
+
+    if (textureResource_.Get() || textureSrvHandleGPU_.ptr != 0) {
+        commandList->SetGraphicsRootDescriptorTable(
+            rootParameterIndexTexture,
+            textureSrvHandleGPU_);
+    }
+
+    commandList->DrawInstanced(
+        static_cast<UINT>(modelData_.vertices.size()), 1, 0, 0);
+}
+
 void Model::ShowDebugUI(std::string tag) {
     if (ImGui::TreeNode(tag.c_str())) {
-        ImGui::DragFloat3("Position", &worldTransform_.translate.x, 0.1f);
-        ImGui::DragFloat3("Rotation", &worldTransform_.rotate.x, 0.1f);
-        ImGui::DragFloat3("Scale", &worldTransform_.scale.x, 0.1f);
+        ImGui::DragFloat3("Position", &worldTransform_.translation_.x, 0.1f);
+        ImGui::DragFloat3("Rotation", &worldTransform_.rotation_.x, 0.1f);
+        ImGui::DragFloat3("Scale", &worldTransform_.scale_.x, 0.1f);
 
         // マテリアル情報の表示
         ImGui::Separator();

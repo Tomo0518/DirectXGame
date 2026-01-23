@@ -244,6 +244,15 @@
     <Filter Include="ソース ファイル\TomoEngine\Engine\Core\TextureManager">
       <UniqueIdentifier>{6dcdd3fd-d40d-4622-bc8c-55f5462fe18b}</UniqueIdentifier>
     </Filter>
+    <Filter Include="ソース ファイル\AL2">
+      <UniqueIdentifier>{2fb1a51b-a3a8-4758-a2d2-cfed6817dbe2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ソース ファイル\AL2\MapChip">
+      <UniqueIdentifier>{e7cbceb6-b5f7-4a24-994e-1a94b79bddce}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ソース ファイル\AL2\Player">
+      <UniqueIdentifier>{a1b791fb-fda5-4bc7-9f02-837f70a3a3aa}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -342,9 +351,6 @@
     <ClCompile Include="CommandContext.cpp">
       <Filter>ソース ファイル\TomoEngine\Engine\Core\Command\CommandContext</Filter>
     </ClCompile>
-    <ClCompile Include="Player.cpp">
-      <Filter>ソース ファイル\TomoEngine\Engine\Game\Object</Filter>
-    </ClCompile>
     <ClCompile Include="Transform.cpp">
       <Filter>ソース ファイル\TomoEngine\Engine\Math\3D\Transform</Filter>
     </ClCompile>
@@ -380,6 +386,12 @@
     </ClCompile>
     <ClCompile Include="WorldTransform.cpp">
       <Filter>ソース ファイル\TomoEngine\Engine\Math\3D</Filter>
+    </ClCompile>
+    <ClCompile Include="MapChipField.cpp">
+      <Filter>ソース ファイル\AL2\MapChip</Filter>
+    </ClCompile>
+    <ClCompile Include="Player.cpp">
+      <Filter>ソース ファイル\AL2\Player</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -524,9 +536,6 @@
     <ClInclude Include="CommandContext.h">
       <Filter>ソース ファイル\TomoEngine\Engine\Core\Command\CommandContext</Filter>
     </ClInclude>
-    <ClInclude Include="Player.h">
-      <Filter>ソース ファイル\TomoEngine\Engine\Game\Object</Filter>
-    </ClInclude>
     <ClInclude Include="Transform.h">
       <Filter>ソース ファイル\TomoEngine\Engine\Math\3D\Transform</Filter>
     </ClInclude>
@@ -568,6 +577,15 @@
     </ClInclude>
     <ClInclude Include="WorldTransform.h">
       <Filter>ソース ファイル\TomoEngine\Engine\Math\3D</Filter>
+    </ClInclude>
+    <ClInclude Include="MapChipField.h">
+      <Filter>ソース ファイル\AL2\MapChip</Filter>
+    </ClInclude>
+    <ClInclude Include="Player.h">
+      <Filter>ソース ファイル\AL2\Player</Filter>
+    </ClInclude>
+    <ClInclude Include="Easing.h">
+      <Filter>ソース ファイル\TomoEngine\Engine\Math</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
