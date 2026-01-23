@@ -191,6 +191,13 @@ void Game::Initialize() {
 	m_modelCube_->GetWorldTransform().translation_ = { -3.0f, 0.0f, 0.0f };
 	m_modelFence_->GetWorldTransform().translation_ = { 0.0f, 0.0f, 0.0f };
 
+	// ==================================
+// 7. マップチップ用ブロック生成
+// ==================================
+	mapChipField_ = std::make_unique<MapChipField>();
+	mapChipField_->LoadMapChipCsv("./resources/mapChip/blocks.csv");
+	GenerateBlocks();
+
 	Vector3 playerPositon = mapChipField_->GetMapChipPositionByIndex(3, 14);
 	m_player.Initialize(m_modelPlayer_, m_camera, playerPositon);
 	m_player.SetMapChipField(mapChipField_.get());
@@ -198,12 +205,6 @@ void Game::Initialize() {
     // 転送コマンドの実行と待機
     context.Finish(true);
 
-	// ==================================
-	// 7. マップチップ用ブロック生成
-	// ==================================
-	mapChipField_ = std::make_unique<MapChipField>();
-	mapChipField_->LoadMapChipCsv("./resources/mapChip/blocks.csv");
-	GenerateBlocks();
 }
 
 void Game::Update() {
