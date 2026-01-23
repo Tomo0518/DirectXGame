@@ -35,7 +35,8 @@ public:
 	void Initialize(Model* model, Camera* camera, const Vector3& position);
 
 	// 更新
-	void Update();
+	//void Update();
+	void Update(const Camera& camera);
 
 	// 描画
 	void Draw(ID3D12GraphicsCommandList* list);

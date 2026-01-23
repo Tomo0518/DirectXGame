@@ -174,11 +174,18 @@ void Game::Initialize() {
 	};
 	modelDataParticle_.material.textureFilePath = "resources/uvChecker.png";
 
+	// ===============================
+	// カメラの生成と初期化
+	// =============================
 	cameraController_ = std::make_unique<CameraController>();
 	cameraController_->Initialize();
 
-	// カメラの生成と初期化
-	camera_ = cameraController_->GetCamera();
+	debugCamera_ = std::make_unique<Camera>();
+
+	isDebugCameraActive_ = false;
+
+	camera_ = isDebugCameraActive_ ? debugCamera_.get() : cameraController_->GetCamera();
+
 	//camera_->Initialize();
 	//camera_->SetTranslation({ 10.0f, 1.0f, -10.0f });
 	//camera_->UpdateMatrix();
@@ -230,14 +237,18 @@ void Game::Update() {
 	if (Input().PushKey(VK_LEFT)) modelPlayer_->GetWorldTransform().rotation_.y += 0.1f;
 	if (Input().PushKey(VK_RIGHT)) modelPlayer_->GetWorldTransform().rotation_.y -= 0.1f;
 
-	//camera_->UpdateDebugCameraMove(1.0f);
-	//camera->UpdateMatrix();
-
 	// ===================================
 	// カメラ更新
 	// ===================================
-	cameraController_->Update();
-	cameraController_->GetCamera()->UpdateViewMatrix();
+
+	if(isDebugCameraActive_) {
+		debugCamera_->UpdateDebugCameraMove(1.0f);
+		debugCamera_->UpdateMatrix();
+	}
+	else {
+		cameraController_->Update();
+		cameraController_->GetCamera()->UpdateViewMatrix();
+	}
 
 	modelPlayer_->Update(*camera_);
 	modelCube_->Update(*camera_);
@@ -247,7 +258,7 @@ void Game::Update() {
 	skydome_->Update();
 
 	// プレイヤー更新
-	player_.Update();
+	player_.Update(*camera_);
 
 	for (uint32_t index = 0; index < kNumInstance; ++index) {
 		Matrix4x4 worldMatrix = MakeAffineMatrix(
@@ -281,6 +292,7 @@ void Game::Update() {
 
 	// カメラのデバッグ
 	ImGui::Text("Camera Control");
+	ImGui::Checkbox("Enable Debug Camera", &isDebugCameraActive_);
 	ImGui::DragFloat3("Camera Position", &camera_->GetTranslation().x, 0.1f);
 	ImGui::DragFloat3("Camera Rotation", &camera_->GetRotation().x, 0.1f);
 
@@ -293,6 +305,11 @@ void Game::Update() {
 	ImGui::End();
 	ImGui::Render();
 
+	// ==============================
+	// ImGuiでの変更事項を反映
+	// ==============================
+	// カメラ切り替え
+	camera_ = isDebugCameraActive_ ? debugCamera_.get() : cameraController_->GetCamera();
 
 	// directionalLightData のdirectonを正規化して書き戻す
 	lightData_->direction = Vector3::Normalize(lightData_->direction);

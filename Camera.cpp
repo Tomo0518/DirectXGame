@@ -6,7 +6,7 @@ Camera::Camera() {
 }
 
 void Camera::Initialize() {
-    translation_ = { 0.0f, 0.0f, -5.0f };
+    translation_ = { 0.0f, 0.0f, -18.0f };
     rotation_ = { 0.0f, 0.0f, 0.0f };
 
     fovY_ = 60.0f;

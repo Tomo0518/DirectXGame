@@ -28,7 +28,7 @@ void Player::Initialize(Model* model, Camera* camera, const Vector3& position) {
 	worldTransform_.translation_ = position;
 }
 
-void Player::Update() {
+void Player::Update(const Camera& camera) {
 	float dt = 1.0f / 60.0f;
 
 	// ===================================
@@ -190,7 +190,7 @@ void Player::Update() {
 	// 8.ワールド行列の更新
 	// ==================================
 
-	worldTransform_.UpdateMatrix(*camera_);
+	worldTransform_.UpdateMatrix(camera);
 }
 
 void Player::MapChipCollisionCheck(CollisionMapInfo& info) {

@@ -80,7 +80,10 @@ private:
     Model* modelSkydome_ = nullptr;
 	Model* modelFence_ = nullptr;
     
+
+	bool isDebugCameraActive_ = false;
     Camera* camera_ = nullptr;
+    std::unique_ptr<Camera> debugCamera_ = nullptr;
     std::unique_ptr<CameraController> cameraController_ = nullptr;
 
     //std::unique_ptr<Sphere> m_sphere;
