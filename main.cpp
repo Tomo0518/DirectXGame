@@ -43,7 +43,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
                 // 更新
                 game->Update();
 
-                // 描画 (内部でGraphicsContextを使用)
+                // 描画
                 game->Render();
 
                 GraphicsCore::GetInstance()->Present();

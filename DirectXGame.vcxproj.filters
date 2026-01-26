@@ -241,6 +241,27 @@
     <Filter Include="ソース ファイル\TomoEngine\Engine\Core\DepthBuffer">
       <UniqueIdentifier>{84fb8c1b-1556-44b8-9908-bce47f919378}</UniqueIdentifier>
     </Filter>
+    <Filter Include="ソース ファイル\TomoEngine\Engine\Core\TextureManager">
+      <UniqueIdentifier>{6dcdd3fd-d40d-4622-bc8c-55f5462fe18b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ソース ファイル\AL2">
+      <UniqueIdentifier>{2fb1a51b-a3a8-4758-a2d2-cfed6817dbe2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ソース ファイル\AL2\MapChip">
+      <UniqueIdentifier>{e7cbceb6-b5f7-4a24-994e-1a94b79bddce}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ソース ファイル\AL2\Player">
+      <UniqueIdentifier>{a1b791fb-fda5-4bc7-9f02-837f70a3a3aa}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ソース ファイル\AL2\CameraController">
+      <UniqueIdentifier>{ba9bcbeb-1330-4fc3-850b-7621b10dad9b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ソース ファイル\AL2\Skydome">
+      <UniqueIdentifier>{5c08cf72-2880-4f9a-924e-0fc636284e57}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ソース ファイル\AL2\Enemy">
+      <UniqueIdentifier>{07e0936c-7796-49ef-b82d-c8881392f971}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -339,9 +360,6 @@
     <ClCompile Include="CommandContext.cpp">
       <Filter>ソース ファイル\TomoEngine\Engine\Core\Command\CommandContext</Filter>
     </ClCompile>
-    <ClCompile Include="Player.cpp">
-      <Filter>ソース ファイル\TomoEngine\Engine\Game\Object</Filter>
-    </ClCompile>
     <ClCompile Include="Transform.cpp">
       <Filter>ソース ファイル\TomoEngine\Engine\Math\3D\Transform</Filter>
     </ClCompile>
@@ -362,6 +380,36 @@
     </ClCompile>
     <ClCompile Include="ColorBuffer.cpp">
       <Filter>ソース ファイル\TomoEngine\Engine\Core\ColorBuffer</Filter>
+    </ClCompile>
+    <ClCompile Include="TextureManager.cpp">
+      <Filter>ソース ファイル\TomoEngine\Engine\Core\TextureManager</Filter>
+    </ClCompile>
+    <ClCompile Include="Sphere.cpp">
+      <Filter>ソース ファイル\TomoEngine\Engine\Math\Geometry</Filter>
+    </ClCompile>
+    <ClCompile Include="GraphicsPipeline.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="GameScene.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="WorldTransform.cpp">
+      <Filter>ソース ファイル\TomoEngine\Engine\Math\3D</Filter>
+    </ClCompile>
+    <ClCompile Include="MapChipField.cpp">
+      <Filter>ソース ファイル\AL2\MapChip</Filter>
+    </ClCompile>
+    <ClCompile Include="Player.cpp">
+      <Filter>ソース ファイル\AL2\Player</Filter>
+    </ClCompile>
+    <ClCompile Include="CameraController.cpp">
+      <Filter>ソース ファイル\AL2\CameraController</Filter>
+    </ClCompile>
+    <ClCompile Include="Skydome.cpp">
+      <Filter>ソース ファイル\AL2\Skydome</Filter>
+    </ClCompile>
+    <ClCompile Include="Enemy.cpp">
+      <Filter>ソース ファイル\AL2\Enemy</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -506,9 +554,6 @@
     <ClInclude Include="CommandContext.h">
       <Filter>ソース ファイル\TomoEngine\Engine\Core\Command\CommandContext</Filter>
     </ClInclude>
-    <ClInclude Include="Player.h">
-      <Filter>ソース ファイル\TomoEngine\Engine\Game\Object</Filter>
-    </ClInclude>
     <ClInclude Include="Transform.h">
       <Filter>ソース ファイル\TomoEngine\Engine\Math\3D\Transform</Filter>
     </ClInclude>
@@ -536,6 +581,39 @@
     <ClInclude Include="ColorBuffer.h">
       <Filter>ソース ファイル\TomoEngine\Engine\Core\ColorBuffer</Filter>
     </ClInclude>
+    <ClInclude Include="TextureManager.h">
+      <Filter>ソース ファイル\TomoEngine\Engine\Core\TextureManager</Filter>
+    </ClInclude>
+    <ClInclude Include="GraphicsPipeline.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="IScene.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="GameScene.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="WorldTransform.h">
+      <Filter>ソース ファイル\TomoEngine\Engine\Math\3D</Filter>
+    </ClInclude>
+    <ClInclude Include="MapChipField.h">
+      <Filter>ソース ファイル\AL2\MapChip</Filter>
+    </ClInclude>
+    <ClInclude Include="Player.h">
+      <Filter>ソース ファイル\AL2\Player</Filter>
+    </ClInclude>
+    <ClInclude Include="Easing.h">
+      <Filter>ソース ファイル\TomoEngine\Engine\Math</Filter>
+    </ClInclude>
+    <ClInclude Include="CameraController.h">
+      <Filter>ソース ファイル\AL2\CameraController</Filter>
+    </ClInclude>
+    <ClInclude Include="Skydome.h">
+      <Filter>ソース ファイル\AL2\Skydome</Filter>
+    </ClInclude>
+    <ClInclude Include="Enemy.h">
+      <Filter>ソース ファイル\AL2\Enemy</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="Object3d.VS.hlsl">
@@ -544,9 +622,18 @@
     <FxCompile Include="Object3d.PS.hlsl">
       <Filter>HLSL</Filter>
     </FxCompile>
+    <FxCompile Include="Particle.PS.hlsl">
+      <Filter>HLSL</Filter>
+    </FxCompile>
+    <FxCompile Include="Particle.VS.hlsl">
+      <Filter>HLSL</Filter>
+    </FxCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="Object3d.hlsli">
+      <Filter>HLSL</Filter>
+    </None>
+    <None Include="Particle.hlsli">
       <Filter>HLSL</Filter>
     </None>
   </ItemGroup>

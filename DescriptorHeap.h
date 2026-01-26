@@ -60,3 +60,33 @@ private:
 
     std::mutex m_AllocationMutex;
 };
+
+class DescriptorHeap {
+public:
+    // コンストラクタ
+    DescriptorHeap() = default;
+    ~DescriptorHeap() = default;
+
+    // ヒープの作成
+    // shaderVisible: テクスチャやImGui用なら true, RTV用なら false
+    void Create(ID3D12Device* device, D3D12_DESCRIPTOR_HEAP_TYPE type, UINT numDescriptors, bool shaderVisible);
+
+    // ディスクリプタを1つ割り当てて、そのハンドルを返す
+    // 戻り値: { CPUハンドル, GPUハンドル }
+    std::pair<D3D12_CPU_DESCRIPTOR_HANDLE, D3D12_GPU_DESCRIPTOR_HANDLE> Allocate();
+
+    // ヒープ自体の取得（SetDescriptorHeaps用）
+    ID3D12DescriptorHeap* GetHeap() const { return heap_.Get(); }
+
+    // 開始位置の取得（必要な場合用）
+    D3D12_CPU_DESCRIPTOR_HANDLE GetStartCpuHandle() const { return startCpuHandle_; }
+    D3D12_GPU_DESCRIPTOR_HANDLE GetStartGpuHandle() const { return startGpuHandle_; }
+
+private:
+    Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> heap_;
+    D3D12_CPU_DESCRIPTOR_HANDLE startCpuHandle_{};
+    D3D12_GPU_DESCRIPTOR_HANDLE startGpuHandle_{};
+    UINT descriptorSize_ = 0;
+    UINT capacity_ = 0;
+    UINT current_ = 0; // 現在どこまで使ったか
+};

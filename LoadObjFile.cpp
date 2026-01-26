@@ -54,13 +54,11 @@ ModelData LoadObjFile(const std::string& directoryPath, const std::string& fileN
 			normals.push_back(normal);
 		}
 		else if (identifier == "f") { // 面情報
-			VertexData triangle[3];
+			std::vector<VertexData> polygon;
 
-			// 面は三角形限定 その他は未対応
-			for (int32_t faceVertex = 0; faceVertex < 3; ++faceVertex) {
-				std::string vertexDefinition;
-				s >> vertexDefinition;
-
+			// 面の全頂点を読み込む（三角形、四角形、多角形に対応）
+			std::string vertexDefinition;
+			while (s >> vertexDefinition) {
 				// 頂点の要素へのIndexは「位置/UV/法線」で格納されているので、分解してIndexを取得する
 				std::istringstream v(vertexDefinition);
 				uint32_t elementIndices[3];
@@ -74,14 +72,18 @@ ModelData LoadObjFile(const std::string& directoryPath, const std::string& fileN
 				Vector4 position = positions[elementIndices[0] - 1];
 				Vector2 texcoord = texcoords[elementIndices[1] - 1];
 				Vector3 normal = normals[elementIndices[2] - 1];
-				triangle[faceVertex] = { position,texcoord,normal };
-
+				polygon.push_back({ position, texcoord, normal });
 			}
 
-			modelData.vertices.push_back(triangle[2]);
-			modelData.vertices.push_back(triangle[1]);
-			modelData.vertices.push_back(triangle[0]);
-			
+			// 多角形を三角形に分割（Fan Triangulation）
+			// 頂点が v0, v1, v2, v3 の四角形の場合
+			// 三角形1: v0, v1, v2
+			// 三角形2: v0, v2, v3
+			for (size_t i = 1; i + 1 < polygon.size(); ++i) {
+				modelData.vertices.push_back(polygon[0]);      // 基準頂点（逆順のため最後）
+				modelData.vertices.push_back(polygon[i + 1]);  // 次の頂点
+				modelData.vertices.push_back(polygon[i]);      // 現在の頂点
+			}
 		}
 		else if (identifier == "mtllib") {
 			// materialTemplateLibraryファイルの名前を取得する
