@@ -11,6 +11,7 @@ public:
 	void Update(const Camera& camera);
 	void Draw(ID3D12GraphicsCommandList* list);
 
+	WorldTransform& GetWorldTransform() { return worldTransform_; }
 private:
 	WorldTransform worldTransform_;
 	Model* model_ = nullptr;

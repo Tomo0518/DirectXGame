@@ -244,12 +244,6 @@ void Game::Update() {
 	ImGui_ImplWin32_NewFrame();
 	ImGui::NewFrame();
 
-	// ゲームロジック
-	/*if (Input().PushKey(VK_UP)) m_transform.translate.z += 0.1f;
-	if (Input().PushKey(VK_DOWN)) m_transform.translate.z -= 0.1f;*/
-	/*if (Input().PushKey(VK_LEFT)) modelPlayer_->GetWorldTransform().rotation_.y += 0.1f;
-	if (Input().PushKey(VK_RIGHT)) modelPlayer_->GetWorldTransform().rotation_.y -= 0.1f;*/
-
 	// ===================================
 	// カメラ更新
 	// ===================================
@@ -269,27 +263,33 @@ void Game::Update() {
 	player_->Update(*camera_);
 	enemy_->Update(*camera_);
 
-	for (uint32_t index = 0; index < kNumInstance; ++index) {
-		Matrix4x4 worldMatrix = MakeAffineMatrix(
-			transform_particles[index].scale,
-			transform_particles[index].rotate,
-			transform_particles[index].translate);
-		Matrix4x4 viewProj = camera_->GetViewProjectionMatrix();
-		Matrix4x4 wvpMatrix = worldMatrix * viewProj;
-		instancingData_[index].World = worldMatrix;
-		instancingData_[index].WVP = wvpMatrix;
-	}
+	// パーティクルのインスタンシングデータ更新
+	{
+		for (uint32_t index = 0; index < kNumInstance; ++index) {
+			Matrix4x4 worldMatrix = MakeAffineMatrix(
+				transform_particles[index].scale,
+				transform_particles[index].rotate,
+				transform_particles[index].translate);
+			Matrix4x4 viewProj = camera_->GetViewProjectionMatrix();
+			Matrix4x4 wvpMatrix = worldMatrix * viewProj;
+			instancingData_[index].World = worldMatrix;
+			instancingData_[index].WVP = wvpMatrix;
+		}
 
-	for (std::vector<WorldTransform*>& worldTransFomBlockLine : worldTransformBlocks_) {
-		for (WorldTransform* worldTransformBlock : worldTransFomBlockLine) {
-			if (!worldTransformBlock) {
-				continue;
+		for (std::vector<WorldTransform*>& worldTransFomBlockLine : worldTransformBlocks_) {
+			for (WorldTransform* worldTransformBlock : worldTransFomBlockLine) {
+				if (!worldTransformBlock) {
+					continue;
+				}
+				worldTransformBlock->UpdateMatrix(*camera_);
 			}
-			worldTransformBlock->UpdateMatrix(*camera_);
 		}
 	}
 
-	// ImGui UI構成
+
+	// ==================================
+	// ImGui
+	// ==================================
 	ImGui::Begin("Debug");
 	ImGui::ColorEdit4("Material Color", materialColor_);
 
@@ -305,10 +305,9 @@ void Game::Update() {
 	ImGui::DragFloat3("Camera Position", &camera_->GetTranslation().x, 0.1f);
 	ImGui::DragFloat3("Camera Rotation", &camera_->GetRotation().x, 0.1f);
 
-	player_->GetModel()->ShowDebugUI("Player Model");
-	modelFence_->ShowDebugUI("Fence Model");
-	modelCube_->ShowDebugUI("Cube Model");
-	modelEnemy_->ShowDebugUI("Enemy Model");
+	player_->GetModel()->ShowDebugUI("Player Model", player_->GetWorldTransform());
+	modelCube_->ShowDebugUI("Cube Model", blockTransform_);
+	modelEnemy_->ShowDebugUI("Enemy Model", enemy_->GetWorldTransform());
 
 	ImGui::Text("Player Texture Handle: %llu", modelPlayer_->GetTextureSrvHandleGPU().ptr);
 	ImGui::Text("Fence Texture Handle: %llu", modelFence_->GetTextureSrvHandleGPU().ptr);
@@ -374,10 +373,9 @@ void Game::Render() {
 	textureSrvHandleGPU.ptr += descriptorSize;
 	commandList->SetGraphicsRootDescriptorTable(2, textureSrvHandleGPU);
 
-
-	////// -------------------- //////
+	////// ==================== //////
 	////// ↓描画処理ここから	    //////
-	////// -------------------- //////
+	////// ==================== //////
 	
 	// スカイドームの描画(背景)
 	skydome_->Draw(commandList);

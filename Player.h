@@ -73,7 +73,7 @@ public:
 	// ===================================
 	// ゲッター
 	// ===================================
-	WorldTransform const& GetWorldTransform() const { return worldTransform_; }
+	WorldTransform& GetWorldTransform() { return worldTransform_; }
 	const Vector3& GetVelocity() const { return velocity_; }
 	const bool GetOnGround() const { return onGround_; }
 

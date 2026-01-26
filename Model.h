@@ -20,35 +20,6 @@ public:
         ID3D12GraphicsCommandList* commandList);
 
     /// <summary>
-    /// OBJファイルからモデルを生成（レガシー版：手動でSRVハンドルを指定）
-    /// </summary>
-  /*  static Model* CreateFromOBJ(
-        const std::string& directoryPath,
-        const std::string& filename,
-        ID3D12GraphicsCommandList* commandList,
-        D3D12_CPU_DESCRIPTOR_HANDLE srvCpuHandle,
-        D3D12_GPU_DESCRIPTOR_HANDLE srvGpuHandle);*/
-
-    /// <summary>
-    /// モデルの更新（Transform行列の計算）
-    /// </summary>
-    /// <param name="camera">カメラ</param>
-   // void Update(const Camera& camera);
-
-    /// <summary>
-    /// モデルの描画
-    /// </summary>
-    /// <param name="commandList">コマンドリスト</param>
-    /// <param name="rootParameterIndexWVP">WVPのルートパラメータインデックス</param>
-    /// <param name="rootParameterIndexMaterial">マテリアルのルートパラメータインデックス</param>
-    /// <param name="rootParameterIndexTexture">テクスチャのルートパラメータインデックス</param>
- /*   void Draw(
-        ID3D12GraphicsCommandList* commandList,
-        uint32_t rootParameterIndexWVP = 1,
-        uint32_t rootParameterIndexMaterial = 0,
-        uint32_t rootParameterIndexTexture = 2);*/
-
-    /// <summary>
     /// 描画
     /// </summary>
     /// <param name="worldTransform">ワールドトランスフォーム</param>
@@ -61,44 +32,26 @@ public:
         uint32_t rootParameterIndexMaterial = 0,
         uint32_t rootParameterIndexTexture = 2);
 
-	// デバック用のImGui表示
-    void ShowDebugUI(std::string tag);
+    /// <summary>
+	/// デバッグ用GUI表示
+    /// </summary>
+    /// <param name="tag">表示するタグ(ツリーの名前)</param>
+    /// <param name="worldTransform">描画に使用するWorldTransform</param>
+    void ShowDebugUI(std::string tag, WorldTransform& worldTransform);
 
-    // WorldTransformへのアクセス
-   /* WorldTransform& GetWorldTransform() { return worldTransform_; }
-    const WorldTransform& GetWorldTransform() const { return worldTransform_; }*/
-
-    // モデルデータへのアクセス
-    const ModelData& GetModelData() const { return modelData_; }
-
-    // マテリアルデータへのアクセス
-    Material* GetMaterialData() { return materialData_; }
-    const Material* GetMaterialData() const { return materialData_; }
-
-    D3D12_GPU_DESCRIPTOR_HANDLE GetTextureSrvHandleGPU() const { return textureSrvHandleGPU_; }
-
-    //void SetExternalWorldTransform(WorldTransform* externalTransform) {
-    //    externalWorldTransform_ = externalTransform;
-    //}
+    const ModelData& GetModelData() const { return modelData_; }  // モデルデータへのアクセス
+    Material* GetMaterialData() { return materialData_; }  // マテリアルデータへのアクセス
+    const Material* GetMaterialData() const { return materialData_; } 
+	D3D12_GPU_DESCRIPTOR_HANDLE GetTextureSrvHandleGPU() const { return textureSrvHandleGPU_; } // テクスチャSRVハンドルへのアクセス
 
 private:
 
     /// <summary>
-    /// モデルの初期化（TextureManager使用版）
+    /// モデルの初期化
     /// </summary>
     void Initialize(
         const ModelData& modelData,
         ID3D12GraphicsCommandList* commandList);
-
-    /// <summary>
-    /// モデルの初期化（レガシー版）
-    /// </summary>
-    void Initialize(
-        const ModelData& modelData,
-        ID3D12GraphicsCommandList* commandList,
-        D3D12_CPU_DESCRIPTOR_HANDLE srvCpuHandle,
-        D3D12_GPU_DESCRIPTOR_HANDLE srvGpuHandle);
-
 	
 private:
     // モデルデータ
@@ -115,9 +68,6 @@ private:
     // テクスチャ（TextureManager管理の場合は空）
     ResourceObject textureResource_;
     D3D12_GPU_DESCRIPTOR_HANDLE textureSrvHandleGPU_{};
-
-    // Transform（各モデル固有）
-	//WorldTransform* externalWorldTransform_; // 外部から渡されたTransformを使う場合用
 
     // アップロード用中間リソース
     std::vector<ResourceObject> intermediateResources_;
